@@ -12,7 +12,9 @@ SplitContents::SplitContents()
     }
 }
 
-//将文本分词，存入列表中返回
+/**
+    将文本分词，存入列表中返回
+*/
 std::vector<SplitedHits> SplitContents::SplitContentsToWords(const std::string& str_contents)
 {
     std::vector<SplitedHits> vec_SplitedHits;
@@ -38,9 +40,72 @@ std::vector<SplitedHits> SplitContents::SplitContentsToWords(const std::string& 
             hashValue
         };
         vec_SplitedHits.push_back(sh_hits);
-
+        //std::wcout<<sh_hits.words<<"["<<sh_hits.offset<<","<<sh_hits.length<<","<<sh_hits.hashValue<<"]   ";
     }
+    //std::wcout<<std::endl<<std::endl;
     return vec_SplitedHits;
+}
+
+/**
+    将段落分割成句子
+*/
+void SplitContents::SplitParaphToSentence(Paragraph& para,const std::string& str)
+{
+    //将文档用标点符号拆分
+    std::vector<std::string> vec_pattern;
+    vec_pattern.push_back("。");
+    vec_pattern.push_back("？");
+    vec_pattern.push_back("！");
+    vec_pattern.push_back("；");
+
+    const int strsize=str.size();
+    std::string::size_type pos;
+    int i = 0;
+    while(i<strsize)
+    {
+        pos = strsize;
+        int patternSize;
+        //查找第一个分隔符的位置
+        for(int j=0; j<vec_pattern.size(); j++)
+        {
+            std::string pattern = vec_pattern[j];
+            int index =str.find(pattern,i);
+            if(index== -1)//没找到句子分隔符
+            {
+                Sentence sen;
+                sen.textRange.offset_begin = para.textRange.offset_begin + i;
+                sen.textRange.offset_end = para.textRange.offset_begin + pos;
+                if(pos!=i)
+                {
+                    para.vec_Sentences.push_back(sen);
+                }
+                i=pos+patternSize;
+                return;
+            }
+            if(index < pos)
+            {
+                pos = index;
+                patternSize = pattern.size();
+            }
+        }
+        if(pos<strsize)
+        {
+            Sentence sen;
+            //std::string s=str.substr(i,pos-i);
+            //std::wcout<<StringUtil::ConvertCharArraytoWString(s)<<std::endl<<std::endl;
+            sen.textRange.offset_begin = para.textRange.offset_begin + i;
+            sen.textRange.offset_end = para.textRange.offset_begin + pos;
+            if(pos!=i)
+            {
+                para.vec_Sentences.push_back(sen);
+            }
+            i=pos+patternSize;
+        }
+        else
+        {
+            break;
+        }
+    }
 }
 
 SplitContents::~SplitContents()

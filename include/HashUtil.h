@@ -7,6 +7,9 @@
 #include "StringUtil.h"
 #include "DataStrcture.h"
 
+// to delete
+#include <iostream>
+
 class HashUtil
 {
     public:
@@ -14,7 +17,8 @@ class HashUtil
         virtual ~HashUtil();
         static bool IsSimHashSimilar(const SIMHASH_TYPE& l_num1, const SIMHASH_TYPE& l_num2);
         static SIMHASH_TYPE CalcWstringHash(const std::wstring& str);
-        static SIMHASH_TYPE CalcParaSimHash(const std::vector<SplitedHits>& vec_SimHash);
+        static SIMHASH_TYPE CalcSenSimHash(const std::vector<KGramHash>& vec_SimHash);
+        static SIMHASH_TYPE CalcParaSimHash(const std::vector<Sentence>& vec_SimHash);
         static SIMHASH_TYPE CalcDocSimHash(const std::vector<Paragraph>& vec_SimHash);
     protected:
         template <typename T>

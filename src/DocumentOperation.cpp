@@ -11,13 +11,13 @@ int DocumentOperation::AddDocument(const std::string& str_DocPath)
     //通过文件路径读取文件内容，并进行分词处理，计算simhash值。
     Document* doc = new Document(str_DocPath);
     doc->CalcParaAndDocSimHash();
-    DocumentDao* docDao = new DocumentDao();
+    doc->Dispaly();
+/*    DocumentDao* docDao = new DocumentDao();
     //与数据库中的文件SimHash比较,如果不相同,计算文档指纹并存入数据库中
     const std::string str_SimilarDoc = docDao->QuerySIMSimilarity(doc);
     if(str_SimilarDoc=="")
     {
         //挑选指纹信息并存入
-        doc->PickAllParaFingerPrints();
         docDao->Insert(doc);
         const char* pch_DocName = doc->GetstrDocName().c_str();
         std::wcout<<StringUtil::ConvertCharArraytoWString(pch_DocName) <<L" inserted"<<std::endl;
@@ -27,15 +27,15 @@ int DocumentOperation::AddDocument(const std::string& str_DocPath)
         const char* pch_DocName = doc->GetstrDocName().c_str();
         const char* pch_SimDocName = str_SimilarDoc.c_str();
         std::wcout<<L"xxxxxx "<<StringUtil::ConvertCharArraytoWString(pch_DocName) <<L" is similar to "<<StringUtil::ConvertCharArraytoWString(pch_SimDocName)<<std::endl;
-    }
+    }*/
     return 0;
 }
 
 //将整个目录中的文件添加到数据库中
 int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
 {
-    DocumentDao* daoDelete = new DocumentDao();
-    daoDelete->DeleteAll();
+ //   DocumentDao* daoDelete = new DocumentDao();
+ //   daoDelete->DeleteAll();
     //读取目录下所有的文件
     struct dirent *ptr;
     DIR *dir;

@@ -6,6 +6,9 @@ WinNowing::WinNowing()
     //ctor
 }
 
+/**
+    通过分词块计算KGram的KRHash
+*/
 std::vector<KGramHash> WinNowing::CalcRabinHash(const std::vector<SplitedHits>& vec_SplitedHits)
 {
     std::vector<KGramHash> vec_KGramHash;
@@ -28,18 +31,15 @@ std::vector<KGramHash> WinNowing::CalcRabinHash(const std::vector<SplitedHits>& 
         {
             kgram_Now.vec_splitedHits.push_back(hits);
             kgram_Last.vec_splitedHits.push_back(hits);
-            /*
-            (a + b)%M = (a%M + b%M)%M
-            (ab)%M = [(a%M)(b%M)]%M
-            */
+            //(a + b)%M = (a%M + b%M)%M    (ab)%M = [(a%M)(b%M)]%M
             kgram_Now.hashValue = ( kgram_Now.hashValue * BASE + hits.hashValue * BASE) % MODNUM;
             n_kcount++;
         }
         else
         {
             // 计算偏移信息并保存kgram的信息
-            kgram_Now.offset_begin = kgram_Now.vec_splitedHits[0].offset;
-            kgram_Now.offset_end = kgram_Now.vec_splitedHits[KGRAM-1].offset + kgram_Now.vec_splitedHits[KGRAM-1].length;
+            kgram_Now.textRange.offset_begin = kgram_Now.vec_splitedHits[0].offset;
+            kgram_Now.textRange.offset_end = kgram_Now.vec_splitedHits[KGRAM-1].offset + kgram_Now.vec_splitedHits[KGRAM-1].length;
             vec_KGramHash.push_back(kgram_Now);
             // 更新kgram_now and kgram_now，即删除kgram_now中的第一个元素，添加下一个元素，同时，第一个分词索引下移
             std::vector<SplitedHits>::iterator it_first = kgram_Now.vec_splitedHits.begin();
@@ -62,8 +62,8 @@ std::vector<KGramHash> WinNowing::CalcRabinHash(const std::vector<SplitedHits>& 
     }
     if(n_kcount<=KGRAM)//分词个数小于K值，则作为一个KGRAM
     {
-        kgram_Now.offset_begin = kgram_Now.vec_splitedHits[0].offset;
-        kgram_Now.offset_end = kgram_Now.vec_splitedHits[n_kcount-1].offset + kgram_Now.vec_splitedHits[n_kcount-1].length;
+        kgram_Now.textRange.offset_begin = kgram_Now.vec_splitedHits[0].offset;
+        kgram_Now.textRange.offset_end = kgram_Now.vec_splitedHits[n_kcount-1].offset + kgram_Now.vec_splitedHits[n_kcount-1].length;
     }
     vec_KGramHash.push_back(kgram_Now);
     return vec_KGramHash;

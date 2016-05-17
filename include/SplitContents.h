@@ -21,6 +21,7 @@ class SplitContents
         SplitContents();
         virtual ~SplitContents();
         std::vector<SplitedHits> SplitContentsToWords(const std::string& str_contents);
+        static void SplitParaphToSentence(Paragraph& para,const std::string& str);
 
     protected:
     private:

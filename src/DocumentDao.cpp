@@ -10,7 +10,7 @@ DocumentDao::DocumentDao()
 
 //插入一个文档到数据库中
 int DocumentDao::Insert(const Document* doc)
-{
+{/*
     mongo::BSONObjBuilder b;
     //保存文档信息
     b.append("filename",doc->GetstrDocName());
@@ -52,7 +52,7 @@ int DocumentDao::Insert(const Document* doc)
     }
     b.append("paragraph",bb_allparas.obj());
     this->m_Conn.insert(this->m_DBName,b.obj());
-    return 0;
+    return 0;*/
 }
 
 //插入一个文档到数据库中
@@ -212,7 +212,7 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
 std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocument(Document* doc)
 {
     std::vector<FingerPrintsSimilarDocument> vec_SimilarDocument;
-    int n_SearchDocParaSize = doc->GetvecParagraph().size();//待比对文档的段落数
+/*    int n_SearchDocParaSize = doc->GetvecParagraph().size();//待比对文档的段落数
     // 查询数据库
     mongo::BSONObj bo_columns = BSON("filepath"<<1<<"paragraph"<<1);
     mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,mongo::Query(),0,0,&bo_columns);
@@ -307,7 +307,7 @@ std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocu
             //将相似文档信息添加到向量中
             vec_SimilarDocument.push_back(similarDoc);
         }
-    }
+    }*/
     return vec_SimilarDocument;
 }
 

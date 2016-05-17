@@ -12,7 +12,7 @@ const int HAMMINGDIST = 3;
 
 const int SIMHASHBITS = 64;
 
-const int KGRAM = 10;
+const int KGRAM = 5;
 const int BASE = 12;
 //const SIMHASH_TYPE MODNUM = ((unsigned SIMHASH_TYPE)1 << (SIMHASHBITS-1))- 1;
 //const SIMHASH_TYPE MODNUM = 9223372036854775783L; //64位长整形的最大质数

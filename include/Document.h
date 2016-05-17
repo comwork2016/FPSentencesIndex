@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "SplitContents.h"
 #include "WinNowing.h"
@@ -26,9 +27,8 @@ class Document
         SIMHASH_TYPE GetlSimHash() const { return m_lSimHash; }
 
         int ReadDocument();
+        int ReadDocumentContent();
         void CalcParaAndDocSimHash();
-        void PickAllParaFingerPrints();
-        void PickParaFingerPrints(int n_ParaIndex);
         void Dispaly();
     protected:
     private:

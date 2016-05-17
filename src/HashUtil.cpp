@@ -6,7 +6,9 @@ HashUtil::HashUtil()
 }
 
 
-//计算海明距离
+/**
+    计算海明距离
+*/
 bool HashUtil::IsSimHashSimilar(const SIMHASH_TYPE& l_num1, const SIMHASH_TYPE& l_num2)
 {
     int hd = 0;
@@ -26,7 +28,9 @@ bool HashUtil::IsSimHashSimilar(const SIMHASH_TYPE& l_num1, const SIMHASH_TYPE& 
     }
 }
 
-//计算文本的hash值
+/**
+    计算文本的hash值
+*/
 SIMHASH_TYPE HashUtil::CalcWstringHash(const std::wstring& str)
 {
     SIMHASH_TYPE l_Hash = 0;
@@ -34,7 +38,7 @@ SIMHASH_TYPE HashUtil::CalcWstringHash(const std::wstring& str)
     std::wstring wstr_Delims = L"|";
     if(str.find(wstr_Delims)!=std::wstring::npos) // 没有近义词
     {
-        std::vector<std::wstring> vec_wstrSplited = StringUtil::SplitString(str,wstr_Delims);
+        std::vector<std::wstring> vec_wstrSplited = StringUtil::SplitWString(str,wstr_Delims);
         for(int i=0; i<vec_wstrSplited.size(); i++)
         {
             std::wstring wstri = vec_wstrSplited[i];
@@ -53,23 +57,24 @@ SIMHASH_TYPE HashUtil::CalcWstringHash(const std::wstring& str)
     return l_Hash;
 }
 
-//计算文档分词后的simhash值
+/**
+    计算文档分词后的simhash值
+*/
 template <typename T>
 SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
 {
     //初始化表示simhash每一位的权重数组
-    short v[SIMHASHBITS];
-    for(int i=0; i<SIMHASHBITS; i++)
+    short v[SIMHASHBITS-1];
+    for(int i=0; i<SIMHASHBITS-1; i++)
     {
         v[i] = 0;
     }
-    //遍历分词列表
+    //遍历hash值列表
     for(int i=0;i<vec_SimHash.size();i++)
     {
-//        std::wcout<<sh_hits.words<<"["<<sh_hits.offset<<","<<sh_hits.length<<","<<sh_hits.hashValue<<"]"<<std::endl;
         SIMHASH_TYPE l_Hash = vec_SimHash[i].hashValue;
         //计算对hash值的每一位，如果为1，则权重数组的相应位+1，为0则-1
-        for (int j = 0; j < SIMHASHBITS; j++)
+        for (int j = 0; j < SIMHASHBITS - 1; j++)
         {
             SIMHASH_TYPE bitmask = 1 << j; //位的掩码:向左移j位
             SIMHASH_TYPE bit = l_Hash&bitmask;
@@ -85,18 +90,23 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
     }
     //根据权重数组计算文档的simhash值
     SIMHASH_TYPE l_SimHash = 0;
-    for (int i = 0; i < SIMHASHBITS; i++)
+    for (int i = 0; i < SIMHASHBITS-1; i++)
     {
         if (v[i] > 0)
         {
-            SIMHASH_TYPE n_IBit = (SIMHASH_TYPE)1<<(SIMHASHBITS-1 - i);
+            SIMHASH_TYPE n_IBit = (SIMHASH_TYPE)1<<(i);
             l_SimHash += n_IBit;
         }
     }
     return l_SimHash;
 }
 
-SIMHASH_TYPE HashUtil::CalcParaSimHash(const std::vector<SplitedHits>& vec_SimHash)
+SIMHASH_TYPE HashUtil::CalcSenSimHash(const std::vector<KGramHash>& vec_SimHash)
+{
+    return CalcSimHash(vec_SimHash);
+}
+
+SIMHASH_TYPE HashUtil::CalcParaSimHash(const std::vector<Sentence>& vec_SimHash)
 {
     return CalcSimHash(vec_SimHash);
 }
