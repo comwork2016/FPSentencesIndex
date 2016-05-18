@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <dirent.h>
 
-// to delete
-#include "SplitContents.h"
-
 class DocumentOperation
 {
     public:

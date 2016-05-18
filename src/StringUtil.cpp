@@ -6,6 +6,16 @@ StringUtil::StringUtil()
 }
 
 /**
+    去掉字符串首尾的空白符
+*/
+std::string StringUtil::Trim(std::string& str)
+{
+    str.erase(0,str.find_first_not_of(" \t\r\n"));
+    str.erase(str.find_last_not_of(" \t\r\n") + 1);
+    return str;
+}
+
+/**
     将字符串转换为wstring类型
 */
 std::wstring StringUtil::ConvertCharArraytoWString(const std::string& str)
@@ -48,7 +58,9 @@ bool StringUtil::isStringBlank(const std::wstring& wstr)
     }
     return true;
 }
-/*
+
+/**
+    分隔宽字节字符串
     str_Source: string to be splited
     str_Delims: split separator
     return splited vector

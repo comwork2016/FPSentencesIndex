@@ -11,6 +11,8 @@ class StringUtil
     public:
         StringUtil();
         virtual ~StringUtil();
+
+        static std::string Trim(std::string& str);
         static bool isStringBlank(const std::string& str);
         static bool isStringBlank(const std::wstring& wstr);
         static std::wstring ConvertCharArraytoWString(const std::string& str);

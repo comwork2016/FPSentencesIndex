@@ -5,22 +5,22 @@
 #include <vector>
 #include "Constants.h"
 
-typedef std::pair<std::wstring,int> SNPair;//存储词频信息
+typedef std::pair<std::string,double> TFPair;//存储词频信息
 
 //定义结构体，用来存储分词之后的片段信息
 struct SplitedHits
 {
-    std::wstring words;//宽字节存储词语
+    std::string words;//存储词语信息
     int offset;//词语在文档中的偏移量
     int length;//词语所占的字节数
-    SIMHASH_TYPE hashValue;
+    SIMHASH_TYPE hashValue;//词语的hash值
 };
 
 //定义结构体，文档某一段之间的内容
 struct TextRange
 {
-    int offset_begin;
-    int offset_end;
+    int offset_begin;//起始偏移值
+    int offset_end;//结束偏移值
 };
 
 //定义结构体，用来存储k-gram组合信息

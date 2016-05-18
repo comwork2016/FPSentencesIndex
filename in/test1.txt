@@ -1,2 +1,2 @@
-Trustworthiness
-Critics of publicly editable wiki systems argue that these systems could be easily tampered with, while proponents argue that the community of users can catch malicious content and correct it.[1] Lars Aronsson, a data systems specialist, summarizes the controversy as follows:
+弊端，那就是不能保证文档间的所有匹配会被检测出来，因为它把所有的选择都依赖于0 mod p。而本文提出的方法winnowing，可以从hash序列种选取合
+这句话没有句子分隔符

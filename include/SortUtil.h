@@ -12,10 +12,10 @@ class SortUtil
         SortUtil();
         virtual ~SortUtil();
 
-        static std::vector<SNPair> SortSNMap(std::map<std::wstring, int>& map_SN);
+        static std::vector<TFPair> SortTFMap(std::map<std::string, double>& map_SN);
 
     protected:
-        static bool SNMapComp(const SNPair& x, const SNPair& y);
+        static bool TFMapComp(const TFPair& x, const TFPair& y);
     private:
 };
 

@@ -5,23 +5,22 @@ SortUtil::SortUtil()
     //ctor
 }
 
-//对map<string, int>按值排序
-std::vector<SNPair> SortUtil::SortSNMap(std::map<std::wstring, int>& map_SN)
+/**
+    对map<string, double>按值排序
+*/
+std::vector<TFPair> SortUtil::SortTFMap(std::map<std::string, double>& map_TF)
 {
-    std::vector<SNPair> vec_SNPair;
+    std::vector<TFPair> vec_TFPair;
     //遍历map
-    for(std::map<std::wstring,int>::iterator it = map_SN.begin(); it != map_SN.end(); it++)
+    for(std::map<std::string,double>::iterator it = map_TF.begin(); it != map_TF.end(); it++)
     {
-    //    if(it->second>1 && it->first.length()>1) //词频大于1且词长大于1的词作为候选关键词
-        {
-            vec_SNPair.push_back(SNPair(it->first,it->second));
-        }
+        vec_TFPair.push_back(TFPair(it->first,it->second));
     }
-    sort(vec_SNPair.begin(),vec_SNPair.end(),SNMapComp);
-    return vec_SNPair;
+    sort(vec_TFPair.begin(),vec_TFPair.end(),TFMapComp);
+    return vec_TFPair;
 }
 
-bool SortUtil::SNMapComp(const SNPair& x, const SNPair& y)
+bool SortUtil::TFMapComp(const TFPair& x, const TFPair& y)
 {
     return x.second < y.second;
 }

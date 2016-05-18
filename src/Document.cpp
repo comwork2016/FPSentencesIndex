@@ -9,8 +9,12 @@ Document::Document(const std::string& str_DocPath)
     this->m_strDocPath = str_DocPath;
     int n_SeparatorIndex = str_DocPath.find_last_of("/");
     this->m_strDocName = str_DocPath.substr(n_SeparatorIndex+1);
+    this->m_strContents = "";
+    this->m_lSimHash = 0;
+    this->m_MapTF.clear();
+    this->m_vecParagraph.clear();
     //读取文档内容
-    int n_ReadStats = ReadDocument();
+    int n_ReadStats = ReadDocumentAndSplit();
     if(n_ReadStats == ERROR_OPENFILE)
     {
         std::cout<<"open file "<<this->m_strDocPath<<" error"<<std::endl;
@@ -41,7 +45,7 @@ int Document::ReadDocumentContent()
     程序中，将一行内容作为一个段落
     并用常见符号将段落分割成句子
 */
-int Document::ReadDocument()
+int Document::ReadDocumentAndSplit()
 {
     std::ifstream ifs_Doc;
     ifs_Doc.open((char *)this->m_strDocPath.c_str(),std::ios_base::in);
@@ -50,6 +54,7 @@ int Document::ReadDocument()
         return ERROR_OPENFILE;
     }
     int offset=0;
+    SplitUtil* splitUtil = new SplitUtil();
     while(!ifs_Doc.eof())
     {
         Paragraph para;
@@ -71,7 +76,15 @@ int Document::ReadDocument()
         {
             //对段落进行句子的拆分
             std::string str = this->m_strContents.substr(para.textRange.offset_begin,para.textRange.offset_end - para.textRange.offset_begin);
-            SplitContents::SplitParaphToSentence(para,str);
+            SplitUtil::SplitParaphToSentence(para,str);
+            //对句子进行分词处理
+            for(int j = 0; j<para.vec_Sentences.size(); j++)
+            {
+                Sentence& sen = para.vec_Sentences[j];
+                int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
+                std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
+                splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF);
+            }
             this->m_vecParagraph.push_back(para);
         }
     }
@@ -80,34 +93,30 @@ int Document::ReadDocument()
 }
 
 /**
-    计算段落和全文的simhash
+    计算词频和全文的simhash
 */
-void Document::CalcParaAndDocSimHash()
+void Document::CalcDocSimHash()
 {
-    SplitContents* splitContents = new SplitContents();
     for(int i=0; i<this->m_vecParagraph.size(); i++)
     {
         Paragraph& para = this->m_vecParagraph[i];
-        //对句子进行分词并计算simhash
+        //对句子计算simhash
         for(int j = 0; j<para.vec_Sentences.size(); j++)
         {
             Sentence& sen = para.vec_Sentences[j];
-            int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
-            std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
-            sen.vec_splitedHits = splitContents->SplitContentsToWords(str_sentence);
-            sen.vec_KGramHash = WinNowing::CalcRabinHash(sen.vec_splitedHits);
-/*
-            //遍历k-gram词组的hash值和文本范围
-            std::wcout<<sen.vec_KGramHash.size()<<std::endl;
+            HashUtil::CalcKRHash(sen);
+            /*//遍历k-gram词组的hash值和文本范围
+            std::cout<<sen.vec_KGramHash.size()<<std::endl;
             for(int i=0; i<sen.vec_KGramHash.size(); i++)
             {
                 for(int j=0; j<sen.vec_KGramHash[i].vec_splitedHits.size(); j++)
                 {
-                    std::wcout<<sen.vec_KGramHash[i].vec_splitedHits[j].words<<" ";
+                    SplitedHits hits = sen.vec_KGramHash[i].vec_splitedHits[j];
+                    std::cout<<hits.words<<" ";
+                    //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<" ";
                 }
-                std::wcout<<"["<<sen.vec_KGramHash[i].textRange.offset_begin<<","<<sen.vec_KGramHash[i].textRange.offset_end<<"]:::"<<sen.vec_KGramHash[i].hashValue<<std::endl;
-            }
-*/
+                std::cout<<"["<<sen.vec_KGramHash[i].textRange.offset_begin<<","<<sen.vec_KGramHash[i].textRange.offset_end<<"]:::"<<sen.vec_KGramHash[i].hashValue<<std::endl;
+            }*/
             sen.hashValue = HashUtil::CalcSenSimHash(sen.vec_KGramHash);
             //std::wcout<<sen.hashValue<<std::endl;
         }
@@ -116,28 +125,37 @@ void Document::CalcParaAndDocSimHash()
         //std::wcout<<std::endl;
     }
     this->m_lSimHash = HashUtil::CalcDocSimHash(this->m_vecParagraph);
+    /*
+        //对map按值排序
+        std::vector<TFPair> vec_TFPair = SortUtil::SortTFMap(map_TF);
+        //遍历map
+        for(std::vector<TFPair>::iterator it = vec_TFPair.begin(); it != vec_TFPair.end(); it++)
+        {
+            std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
+        }
+    */
 }
 
 void Document::Dispaly()
 {
     //输出文件的信息
-    std::wcout<<StringUtil::ConvertCharArraytoWString(this->m_strDocName)<<std::endl;
+    std::cout<<this->m_strDocName<<std::endl;
     /*
-        //输出段落句子的信息
-        for(int i=0; i<this->m_vecParagraph.size(); i++)
+    //输出段落句子的信息
+    for(int i=0; i<this->m_vecParagraph.size(); i++)
+    {
+        Paragraph& para = m_vecParagraph[i];
+        //对句子进行分词并计算simhash
+        for(int j = 0; j<para.vec_Sentences.size(); j++)
         {
-            Paragraph& para = m_vecParagraph[i];
-            //对句子进行分词并计算simhash
-            for(int j = 0; j<para.vec_Sentences.size(); j++)
-            {
-                Sentence& sen = para.vec_Sentences[j];
-                int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
-                std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
-                std::wcout<<L"Para "<<i<<L" Sentence "<<j<<L" "<<std::endl;
-                std::wcout<<StringUtil::ConvertCharArraytoWString(str_sentence)<<std::endl;
-            }
-        }*/
-    std::wcout<<this->m_lSimHash<<std::endl;
+            Sentence& sen = para.vec_Sentences[j];
+            int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
+            std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
+            std::cout<<"Para "<<i<<" Sentence "<<j<<":"<<std::endl;
+            std::cout<<str_sentence<<std::endl<<std::endl;
+        }
+    }*/
+    std::cout<<this->m_lSimHash<<std::endl;
 }
 
 Document::~Document()

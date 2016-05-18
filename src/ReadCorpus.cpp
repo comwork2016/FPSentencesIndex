@@ -1,0 +1,39 @@
+#include "ReadCorpus.h"
+
+ReadCorpus::ReadCorpus()
+{
+    //ctor
+}
+
+/**
+    从语料库cvs文件中读取词频信息
+*/
+void ReadCorpus::ReadCorpusTF(const std::string& str_CorpusPath)
+{
+    std::ifstream fin;
+    fin.open(str_CorpusPath.c_str(),std::ios::in);
+    if(!fin.is_open())
+    {
+        std::cout<<"Read file: "<<str_CorpusPath<<" error!"<<std::endl;
+    }
+    std::string line;
+    while (getline(fin, line))
+    {
+        std::istringstream sin(line);
+        std::vector<std::string> fields;
+        std::string field;
+        while (getline(sin, field, ','))
+        {
+            fields.push_back(field);
+        }
+        std::string term = StringUtil::Trim(fields[0]);
+        std::string str_frequency = StringUtil::Trim(fields[1]);
+        double frequency = atof(str_frequency.c_str());
+        map_CorpusTF[term] = frequency;
+    }
+}
+
+ReadCorpus::~ReadCorpus()
+{
+    //dtor
+}

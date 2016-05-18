@@ -7,10 +7,11 @@
 #include <fstream>
 #include <sstream>
 
-#include "SplitContents.h"
-#include "WinNowing.h"
+#include "SplitUtil.h"
 
 #include "StringUtil.h"
+#include "SortUtil.h"
+#include "HashUtil.h"
 
 // to delete
 #include <string.h>
@@ -26,9 +27,9 @@ class Document
         std::vector<Paragraph> GetvecParagraph() const { return m_vecParagraph; }
         SIMHASH_TYPE GetlSimHash() const { return m_lSimHash; }
 
-        int ReadDocument();
+        int ReadDocumentAndSplit();
         int ReadDocumentContent();
-        void CalcParaAndDocSimHash();
+        void CalcDocSimHash();
         void Dispaly();
     protected:
     private:
@@ -36,6 +37,7 @@ class Document
         std::string m_strDocName;
         std::string m_strContents;
         std::vector<Paragraph> m_vecParagraph;
+        std::map<std::string, double> m_MapTF;//文档词频信息
         SIMHASH_TYPE m_lSimHash;
 };
 

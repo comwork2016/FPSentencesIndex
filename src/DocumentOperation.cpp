@@ -10,7 +10,7 @@ int DocumentOperation::AddDocument(const std::string& str_DocPath)
 {
     //通过文件路径读取文件内容，并进行分词处理，计算simhash值。
     Document* doc = new Document(str_DocPath);
-    doc->CalcParaAndDocSimHash();
+    doc->CalcDocSimHash();
     doc->Dispaly();
 /*    DocumentDao* docDao = new DocumentDao();
     //与数据库中的文件SimHash比较,如果不相同,计算文档指纹并存入数据库中
@@ -62,7 +62,7 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
 int DocumentOperation::SearchLeak(const std::string& str_DocPath)
 {
     Document* doc = new Document(str_DocPath);
-    doc->CalcParaAndDocSimHash();
+
     DocumentDao* docDao = new DocumentDao();
     //与数据库中的文件SimHash比较,如果不相同,再通过文档指纹查询泄露信息
     std::string str_SimilarDoc = docDao->QuerySIMSimilarity(doc);

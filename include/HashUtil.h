@@ -3,9 +3,11 @@
 
 #include <string>
 #include <vector>
+
 #include "Constants.h"
 #include "StringUtil.h"
 #include "DataStrcture.h"
+#include "SplitUtil.h"
 
 // to delete
 #include <iostream>
@@ -15,8 +17,11 @@ class HashUtil
     public:
         HashUtil();
         virtual ~HashUtil();
+
+        static void CalcKRHash(Sentence& sen);
+
         static bool IsSimHashSimilar(const SIMHASH_TYPE& l_num1, const SIMHASH_TYPE& l_num2);
-        static SIMHASH_TYPE CalcWstringHash(const std::wstring& str);
+        static SIMHASH_TYPE CalcStringHash(const std::string& str);
         static SIMHASH_TYPE CalcSenSimHash(const std::vector<KGramHash>& vec_SimHash);
         static SIMHASH_TYPE CalcParaSimHash(const std::vector<Sentence>& vec_SimHash);
         static SIMHASH_TYPE CalcDocSimHash(const std::vector<Paragraph>& vec_SimHash);
