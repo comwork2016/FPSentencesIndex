@@ -26,9 +26,10 @@ SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
     else
     {
         std::wstring wstr = StringUtil::ConvertCharArraytoWString(str);
-        for(int i=0; i<wstr.length(); i--)
+        for(int i=0; i<wstr.length(); i++)
         {
             wchar_t c = wstr.at(i);
+            //std::wcout<<c<<":"<<int(c)<<std::endl;
             l_Hash = ( BASE * l_Hash +  int(c)*BASE) % MODNUM;
         }
     }
@@ -138,7 +139,7 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
         //计算对hash值的每一位，如果为1，则权重数组的相应位+1，为0则-1
         for (int j = 0; j < SIMHASHBITS - 1; j++)
         {
-            SIMHASH_TYPE bitmask = 1 << j; //位的掩码:向左移j位
+            SIMHASH_TYPE bitmask = (unsigned SIMHASH_TYPE)1 << j; //位的掩码:向左移j位
             SIMHASH_TYPE bit = l_Hash&bitmask;
             if (bit != 0)
             {
@@ -156,7 +157,7 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
     {
         if (v[i] > 0)
         {
-            SIMHASH_TYPE n_IBit = (SIMHASH_TYPE)1<<(i);
+            SIMHASH_TYPE n_IBit = (unsigned SIMHASH_TYPE)1<<(i);
             l_SimHash += n_IBit;
         }
     }

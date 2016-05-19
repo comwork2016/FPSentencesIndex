@@ -229,13 +229,15 @@ void Document::Dispaly()
     /*//遍历k-gram词组的hash值和文本范围
     for(int i=0; i<this->m_KGramFingerPrints.size(); i++)
     {
+        std::cout<<this->m_KGramFingerPrints[i].hashValue<<"\t";
         for(int j=0; j<this->m_KGramFingerPrints[i].vec_splitedHits.size(); j++)
         {
             SplitedHits hits = this->m_KGramFingerPrints[i].vec_splitedHits[j];
-            std::cout<<hits.words<<" ";
-            //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<" ";
+            //std::cout<<hits.words<<"\t";
+            //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<"\t";
+            std::cout<<hits.hashValue<<"\t";
         }
-        std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]:::"<<this->m_KGramFingerPrints[i].hashValue<<std::endl;
+        std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]"<<std::endl;
     }*/
     std::cout<<this->m_KGramFingerPrints.size()<<std::endl;
     std::cout<<this->m_lSimHash<<std::endl;
