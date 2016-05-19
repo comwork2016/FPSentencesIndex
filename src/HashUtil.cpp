@@ -38,11 +38,12 @@ SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
 /**
     通过分词块计算KGram的KRHash
 */
-void HashUtil::CalcKRHash(Sentence& sen)
+std::vector<KGramHash> HashUtil::GetKGramAndCalcKRHash(const Sentence& sen)
 {
+    std::vector<KGramHash> vec_KGramHash;
     if(sen.vec_splitedHits.size()<KGRAM)//如果分词数少于阈值，则不作为一个特征项
     {
-        return;
+        return vec_KGramHash;
     }
     //初始化kgramhash
     int n_kcount = 0;
@@ -72,7 +73,7 @@ void HashUtil::CalcKRHash(Sentence& sen)
             // 计算偏移信息并保存kgram的信息
             kgram_Now.textRange.offset_begin = kgram_Now.vec_splitedHits[0].offset;
             kgram_Now.textRange.offset_end = kgram_Now.vec_splitedHits[KGRAM-1].offset + kgram_Now.vec_splitedHits[KGRAM-1].length;
-            sen.vec_KGramHash.push_back(kgram_Now);
+            vec_KGramHash.push_back(kgram_Now);
             // 更新kgram_now and kgram_now，即删除kgram_now中的第一个元素，添加下一个元素，同时，第一个分词索引下移
             std::vector<SplitedHits>::iterator it_first = kgram_Now.vec_splitedHits.begin();
             kgram_Now.vec_splitedHits.erase(it_first);
@@ -92,7 +93,8 @@ void HashUtil::CalcKRHash(Sentence& sen)
             kgram_Last = kgram_Now;
         }
     }
-    sen.vec_KGramHash.push_back(kgram_Now);
+    vec_KGramHash.push_back(kgram_Now);
+    return vec_KGramHash;
 }
 
 /**
@@ -130,7 +132,7 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
         v[i] = 0;
     }
     //遍历hash值列表
-    for(int i=0;i<vec_SimHash.size();i++)
+    for(int i=0; i<vec_SimHash.size(); i++)
     {
         SIMHASH_TYPE l_Hash = vec_SimHash[i].hashValue;
         //计算对hash值的每一位，如果为1，则权重数组的相应位+1，为0则-1
@@ -161,17 +163,7 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
     return l_SimHash;
 }
 
-SIMHASH_TYPE HashUtil::CalcSenSimHash(const std::vector<KGramHash>& vec_SimHash)
-{
-    return CalcSimHash(vec_SimHash);
-}
-
-SIMHASH_TYPE HashUtil::CalcParaSimHash(const std::vector<Sentence>& vec_SimHash)
-{
-    return CalcSimHash(vec_SimHash);
-}
-
-SIMHASH_TYPE HashUtil::CalcDocSimHash(const std::vector<Paragraph>& vec_SimHash)
+SIMHASH_TYPE HashUtil::CalcDocSimHash(const std::vector<KGramHash>& vec_SimHash)
 {
     return CalcSimHash(vec_SimHash);
 }

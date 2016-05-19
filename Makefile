@@ -1,4 +1,4 @@
-objs=obj/ReadCorpus.o obj/StringUtil.o obj/HashUtil.o obj/SortUtil.o obj/SplitUtil.o obj/Document.o obj/DocumentDao.o obj/DocumentOperation.o obj/main.o 
+objs=obj/ReadCorpus.o obj/StringUtil.o obj/HashUtil.o obj/SplitUtil.o obj/Document.o obj/DocumentDao.o obj/DocumentOperation.o obj/main.o 
 
 CPPINCLUDE=-Iinclude
 BOOSTINCLUDE=-pthread -lmongoclient -lboost_thread -lboost_filesystem -lboost_program_options -lboost_system

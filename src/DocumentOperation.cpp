@@ -9,8 +9,10 @@ DocumentOperation::DocumentOperation()
 int DocumentOperation::AddDocument(const std::string& str_DocPath)
 {
     //通过文件路径读取文件内容，并进行分词处理，计算simhash值。
-    Document* doc = new Document(str_DocPath);
+    Document* doc = new Document(str_DocPath,true);
     doc->CalcDocSimHash();
+    doc->PickStopTerm();
+    doc->PickFingerPrints();
     doc->Dispaly();
 /*    DocumentDao* docDao = new DocumentDao();
     //与数据库中的文件SimHash比较,如果不相同,计算文档指纹并存入数据库中

@@ -37,7 +37,6 @@ struct Sentence
     TextRange textRange; //段落范围
     SIMHASH_TYPE hashValue;//句子的simhash值
     std::vector<SplitedHits> vec_splitedHits; //段落包含的分词信息
-    std::vector<KGramHash> vec_KGramHash; //句子指纹信息
 };
 
 //定义结构体，存储段落信息

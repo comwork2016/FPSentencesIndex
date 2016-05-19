@@ -4,21 +4,30 @@
    文档构造函数
    处理文件路径，文件名读取文档内容。
 */
-Document::Document(const std::string& str_DocPath)
+Document::Document(const std::string& str_DocPath,bool b_Split)
 {
     this->m_strDocPath = str_DocPath;
     int n_SeparatorIndex = str_DocPath.find_last_of("/");
     this->m_strDocName = str_DocPath.substr(n_SeparatorIndex+1);
     this->m_strContents = "";
     this->m_lSimHash = 0;
+    this->m_nWordCount = 0;
     this->m_MapTF.clear();
     this->m_vecParagraph.clear();
-    //读取文档内容
-    int n_ReadStats = ReadDocumentAndSplit();
-    if(n_ReadStats == ERROR_OPENFILE)
+    if(b_Split)
     {
-        std::cout<<"open file "<<this->m_strDocPath<<" error"<<std::endl;
-        return;
+        //读取文档内容
+        int n_ReadStats = ReadDocumentAndSplit();
+        if(n_ReadStats == ERROR_OPENFILE)
+        {
+            std::cout<<"open file "<<this->m_strDocPath<<" error"<<std::endl;
+            return;
+        }
+        TFNormalization();
+    }
+    else
+    {
+        ReadDocumentContent();
     }
 }
 
@@ -83,7 +92,7 @@ int Document::ReadDocumentAndSplit()
                 Sentence& sen = para.vec_Sentences[j];
                 int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
                 std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
-                splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF);
+                splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF,this->m_nWordCount);
             }
             this->m_vecParagraph.push_back(para);
         }
@@ -93,38 +102,48 @@ int Document::ReadDocumentAndSplit()
 }
 
 /**
-    计算词频和全文的simhash
+    词频标准化
+*/
+void Document::TFNormalization()
+{
+    /*//统计词频出现最高的词语
+    double d_MaxTF = 0;
+    //std::string str_MaxTerm;
+    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
+    {
+        double d_TF = it->second;
+        if(d_TF > d_MaxTF)
+        {
+            d_MaxTF = d_TF;
+            //str_MaxTerm = it->first;
+        }
+    }
+    //std::cout<<str_MaxTerm<<","<<d_MaxTF<<std::endl;*/
+    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
+    {
+        std::string str_term = it->first;
+        double d_TF = it->second / this->m_nWordCount;
+        this->m_MapTF[str_term] = d_TF;
+    }
+}
+
+/**
+    计算全文的simhash
 */
 void Document::CalcDocSimHash()
 {
     for(int i=0; i<this->m_vecParagraph.size(); i++)
     {
         Paragraph& para = this->m_vecParagraph[i];
-        //对句子计算simhash
+        //将句子组合成一个特征项，并添加到文档指纹集合中
         for(int j = 0; j<para.vec_Sentences.size(); j++)
         {
             Sentence& sen = para.vec_Sentences[j];
-            HashUtil::CalcKRHash(sen);
-            /*//遍历k-gram词组的hash值和文本范围
-            std::cout<<sen.vec_KGramHash.size()<<std::endl;
-            for(int i=0; i<sen.vec_KGramHash.size(); i++)
-            {
-                for(int j=0; j<sen.vec_KGramHash[i].vec_splitedHits.size(); j++)
-                {
-                    SplitedHits hits = sen.vec_KGramHash[i].vec_splitedHits[j];
-                    std::cout<<hits.words<<" ";
-                    //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<" ";
-                }
-                std::cout<<"["<<sen.vec_KGramHash[i].textRange.offset_begin<<","<<sen.vec_KGramHash[i].textRange.offset_end<<"]:::"<<sen.vec_KGramHash[i].hashValue<<std::endl;
-            }*/
-            sen.hashValue = HashUtil::CalcSenSimHash(sen.vec_KGramHash);
-            //std::wcout<<sen.hashValue<<std::endl;
+            std::vector<KGramHash> vec_KGramHash =  HashUtil::GetKGramAndCalcKRHash(sen);
+            this->m_KGramFingerPrints.insert(this->m_KGramFingerPrints.end(),vec_KGramHash.begin(),vec_KGramHash.end());
         }
-        para.hashValue = HashUtil::CalcParaSimHash(para.vec_Sentences);
-        //std::wcout<<para.hashValue<<std::endl;
-        //std::wcout<<std::endl;
     }
-    this->m_lSimHash = HashUtil::CalcDocSimHash(this->m_vecParagraph);
+    this->m_lSimHash = HashUtil::CalcDocSimHash(this->m_KGramFingerPrints);
     /*
         //对map按值排序
         std::vector<TFPair> vec_TFPair = SortUtil::SortTFMap(map_TF);
@@ -134,6 +153,57 @@ void Document::CalcDocSimHash()
             std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
         }
     */
+}
+
+/**
+    挑选停用词
+*/
+void Document::PickStopTerm()
+{
+    //对文档中出现的每个词语，计算逆文档频率，当频率小于阈值时，加入到停用词集合中
+    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
+    {
+        std::string str_term = it->first;
+        double d_tf = it->second;
+        double d_idf = ReadCorpus::map_CorpusTF[str_term];
+        if(d_idf !=0)//语料库中存在该词条
+        {
+            double d_tf_idf = d_tf / d_idf;
+            //std::cout<<str_term<<":"<<d_tf_idf<<std::endl;
+            if(d_tf_idf > 1)//当词语的逆文档频率小于阈值时，加入停用词集合
+            {
+                this->m_SetStopTerm.insert(str_term);
+            }
+        }
+    }
+}
+
+/**
+    挑选文档指纹，如果特征项的前缀逆文档频率没有超过阈值时，删除该特征项
+*/
+void Document::PickFingerPrints()
+{
+    for(std::vector<KGramHash>::iterator it = this->m_KGramFingerPrints.begin(); it != this->m_KGramFingerPrints.end(); it++)
+    {
+        KGramHash kgram = *it;
+        std::string str_prefix = kgram.vec_splitedHits[0].words;
+        //在停用词集合中查找，不存在则删除
+        if( this->m_SetStopTerm.find(str_prefix) != this->m_SetStopTerm.end())
+        {
+            this->m_KGramFingerPrints.erase(it);
+            it--;
+        }
+        else if(it != this->m_KGramFingerPrints.begin())//对比上一个指纹，如果vsm相似度高达（KGRAME-2）/KGRAME，则删除
+        {
+            std::vector<KGramHash>::iterator it_Last = it-1;
+            std::string str_prefix_last = (*it_Last).vec_splitedHits[1].words;
+            if(str_prefix == str_prefix_last)
+            {
+                this->m_KGramFingerPrints.erase(it);
+                it--;
+            }
+        }
+    }
 }
 
 void Document::Dispaly()
@@ -155,6 +225,19 @@ void Document::Dispaly()
             std::cout<<str_sentence<<std::endl<<std::endl;
         }
     }*/
+
+    /*//遍历k-gram词组的hash值和文本范围
+    for(int i=0; i<this->m_KGramFingerPrints.size(); i++)
+    {
+        for(int j=0; j<this->m_KGramFingerPrints[i].vec_splitedHits.size(); j++)
+        {
+            SplitedHits hits = this->m_KGramFingerPrints[i].vec_splitedHits[j];
+            std::cout<<hits.words<<" ";
+            //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<" ";
+        }
+        std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]:::"<<this->m_KGramFingerPrints[i].hashValue<<std::endl;
+    }*/
+    std::cout<<this->m_KGramFingerPrints.size()<<std::endl;
     std::cout<<this->m_lSimHash<<std::endl;
 }
 

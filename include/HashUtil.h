@@ -18,13 +18,11 @@ class HashUtil
         HashUtil();
         virtual ~HashUtil();
 
-        static void CalcKRHash(Sentence& sen);
-
         static bool IsSimHashSimilar(const SIMHASH_TYPE& l_num1, const SIMHASH_TYPE& l_num2);
         static SIMHASH_TYPE CalcStringHash(const std::string& str);
-        static SIMHASH_TYPE CalcSenSimHash(const std::vector<KGramHash>& vec_SimHash);
-        static SIMHASH_TYPE CalcParaSimHash(const std::vector<Sentence>& vec_SimHash);
-        static SIMHASH_TYPE CalcDocSimHash(const std::vector<Paragraph>& vec_SimHash);
+        static SIMHASH_TYPE CalcDocSimHash(const std::vector<KGramHash>& vec_SimHash);
+
+        static std::vector<KGramHash> GetKGramAndCalcKRHash(const Sentence& sen);
     protected:
         template <typename T>
         static SIMHASH_TYPE CalcSimHash(const std::vector<T>& vec_SimHash);

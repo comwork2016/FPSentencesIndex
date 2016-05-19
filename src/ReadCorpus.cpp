@@ -28,7 +28,7 @@ void ReadCorpus::ReadCorpusTF(const std::string& str_CorpusPath)
         }
         std::string term = StringUtil::Trim(fields[0]);
         std::string str_frequency = StringUtil::Trim(fields[1]);
-        double frequency = atof(str_frequency.c_str());
+        double frequency = atof(str_frequency.c_str())/100;
         map_CorpusTF[term] = frequency;
     }
 }

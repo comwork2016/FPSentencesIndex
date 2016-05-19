@@ -29,9 +29,9 @@ int main()
     //DocumentOperation::AddDocument("./in/test1.txt");
     /*    //查询数据泄露
         std::string str_LeakDoc = "./test/leak.txt";
-        DocumentOperation::SearchLeak(str_LeakDoc);
+        DocumentOperation::SearchLeak(str_LeakDoc);*/
         finish = clock();
         double duration = (double)(finish - start) / CLOCKS_PER_SEC;
-        std::wcout<<std::endl<<std::endl<<L"run program in "<<duration<<L" secs"<<std::endl<<std::endl;*/
+        std::cout<<std::endl<<std::endl<<"cost "<<duration<<" secs"<<std::endl<<std::endl;
     return 0;
 }

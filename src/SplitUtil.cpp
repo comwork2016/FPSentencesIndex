@@ -30,7 +30,7 @@ void SplitUtil::SplitParaphToSentence(Paragraph& para,const std::string& str)
     while(i<strsize)
     {
         pos = strsize;
-        int patternSize;
+        int patternSize=0;
         //查找第一个分隔符的位置
         for(int j=0; j<vec_pattern.size(); j++)
         {
@@ -62,7 +62,7 @@ void SplitUtil::SplitParaphToSentence(Paragraph& para,const std::string& str)
 /**
     对句子分词并统计词频
 */
-void SplitUtil::SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map<std::string,double>& map_TF)
+void SplitUtil::SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map<std::string,double>& map_TF,int& n_WordCount)
 {
     int i;
     // 设置任务信息
@@ -85,6 +85,7 @@ void SplitUtil::SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map
             hashValue
         };
         sen.vec_splitedHits.push_back(sh_hits);
+        n_WordCount++;
         map_TF[str_HitsWord] += 1;
         //std::cout<<sh_hits.words<<"["<<sh_hits.offset<<","<<sh_hits.length<<","<<sh_hits.hashValue<<"]   ";
     }

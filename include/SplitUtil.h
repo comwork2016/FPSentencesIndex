@@ -21,7 +21,7 @@ class SplitUtil
         virtual ~SplitUtil();
 
         static void SplitParaphToSentence(Paragraph& para,const std::string& str);
-        void SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map<std::string,double>& map_TF);
+        void SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map<std::string,double>& map_TF, int& n_WordCount);
         static std::vector<std::string> SplitString(const std::string& str_Source,const std::string& str_pattern);
     protected:
     private:
