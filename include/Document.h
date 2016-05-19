@@ -26,6 +26,7 @@ class Document
         std::string GetstrDocName() const { return m_strDocName; }
         std::string GetstrContents() const { return m_strContents; }
         std::vector<Paragraph> GetvecParagraph() const { return m_vecParagraph; }
+        std::vector<KGramHash> GetKGramFingerPrints() const { return m_KGramFingerPrints; }
         SIMHASH_TYPE GetlSimHash() const { return m_lSimHash; }
 
         int ReadDocumentAndSplit();

@@ -80,7 +80,7 @@ void SplitUtil::SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map
         SplitedHits sh_hits =
         {
             str_HitsWord,
-            n_offset,
+            sen.textRange.offset_begin + n_offset,
             n_length,
             hashValue
         };

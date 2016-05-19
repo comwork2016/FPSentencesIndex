@@ -24,6 +24,7 @@ Document::Document(const std::string& str_DocPath,bool b_Split)
             return;
         }
         TFNormalization();
+        CalcDocSimHash();
     }
     else
     {
@@ -183,6 +184,7 @@ void Document::PickStopTerm()
 */
 void Document::PickFingerPrints()
 {
+    PickStopTerm();//挑选停用词
     for(std::vector<KGramHash>::iterator it = this->m_KGramFingerPrints.begin(); it != this->m_KGramFingerPrints.end(); it++)
     {
         KGramHash kgram = *it;
@@ -221,24 +223,23 @@ void Document::Dispaly()
             Sentence& sen = para.vec_Sentences[j];
             int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
             std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
-            std::cout<<"Para "<<i<<" Sentence "<<j<<":"<<std::endl;
+            std::cout<<"Para "<<i<<" Sentence "<<j<<":["<<sen.textRange.offset_begin<<","<<sen.textRange.offset_end<<"]"<<std::endl;
             std::cout<<str_sentence<<std::endl<<std::endl;
         }
     }*/
 
-    /*//遍历k-gram词组的hash值和文本范围
+    /*//遍历k-gram词组的hash值和文本范围*/
     for(int i=0; i<this->m_KGramFingerPrints.size(); i++)
     {
         std::cout<<this->m_KGramFingerPrints[i].hashValue<<"\t";
         for(int j=0; j<this->m_KGramFingerPrints[i].vec_splitedHits.size(); j++)
         {
             SplitedHits hits = this->m_KGramFingerPrints[i].vec_splitedHits[j];
-            //std::cout<<hits.words<<"\t";
+            std::cout<<hits.words<<"\t";
             //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<"\t";
-            std::cout<<hits.hashValue<<"\t";
         }
         std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]"<<std::endl;
-    }*/
+    }
     std::cout<<this->m_KGramFingerPrints.size()<<std::endl;
     std::cout<<this->m_lSimHash<<std::endl;
 }

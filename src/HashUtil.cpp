@@ -57,7 +57,7 @@ std::vector<KGramHash> HashUtil::GetKGramAndCalcKRHash(const Sentence& sen)
     SIMHASH_TYPE l_SimHash = 0;
     //遍历分词列表
     int i=0;
-    for(i=0; i<sen.vec_splitedHits.size(); i++)
+    for(i=0; i< sen.vec_splitedHits.size(); i++)
     {
         SplitedHits hits = sen.vec_splitedHits[i];//词语单位
         //H(c 1 . . . ck ) = c1 ∗ b^k + c2 ∗ b^k−1 ∗ . . . + ck−1 ∗ b^2 + ck*b
@@ -94,6 +94,9 @@ std::vector<KGramHash> HashUtil::GetKGramAndCalcKRHash(const Sentence& sen)
             kgram_Last = kgram_Now;
         }
     }
+    // 计算偏移信息并保存kgram的信息
+    kgram_Now.textRange.offset_begin = kgram_Now.vec_splitedHits[0].offset;
+    kgram_Now.textRange.offset_end = kgram_Now.vec_splitedHits[KGRAM-1].offset + kgram_Now.vec_splitedHits[KGRAM-1].length;
     vec_KGramHash.push_back(kgram_Now);
     return vec_KGramHash;
 }

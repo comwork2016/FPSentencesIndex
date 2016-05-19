@@ -31,6 +31,7 @@ void ReadCorpus::ReadCorpusTF(const std::string& str_CorpusPath)
         double frequency = atof(str_frequency.c_str())/100;
         map_CorpusTF[term] = frequency;
     }
+    fin.close();
 }
 
 ReadCorpus::~ReadCorpus()
