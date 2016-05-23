@@ -32,8 +32,9 @@ std::wstring StringUtil::ConvertCharArraytoWString(const std::string& str)
 /**
     检查是不是空白行
 */
-bool StringUtil::isStringBlank(const std::string& str)
+bool StringUtil::isStringBlank(std::string str)
 {
+    str = Trim(str);
     for(int i=0; i<str.length(); i++)
     {
         if(str[i]!=' ')
@@ -47,7 +48,7 @@ bool StringUtil::isStringBlank(const std::string& str)
 /**
     检查是不是空白行
 */
-bool StringUtil::isStringBlank(const std::wstring& wstr)
+bool StringUtil::isStringBlank(std::wstring wstr)
 {
     for(int i=0; i<wstr.length(); i++)
     {

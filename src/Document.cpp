@@ -12,6 +12,7 @@ Document::Document(const std::string& str_DocPath,bool b_Split)
     this->m_strContents = "";
     this->m_lSimHash = 0;
     this->m_nWordCount = 0;
+    this->m_vecTitleTerm.clear();
     this->m_MapTF.clear();
     this->m_vecParagraph.clear();
     if(b_Split)
@@ -134,7 +135,7 @@ void Document::CalcDocSimHash()
 void Document::TFNormalization()
 {
     //对在文章标题中出现的词语，加大词语的权重，作为5个平常词语出现
-    for(int i=0;i<this->m_vecTitleTerm.size();i++)
+    for(int i=0; i<this->m_vecTitleTerm.size(); i++)
     {
         std::string str_term = this->m_vecTitleTerm[i];
         this->m_MapTF[str_term] += 4;
@@ -227,14 +228,17 @@ void Document::PickFingerPrints()
         }
         if(b_kept && kgram.b_Last) //如果最后一个指纹保留了，则删除上一个vsm相似度高的指纹
         {
-            std::vector<KGramHash>::iterator it_Last = it-1;
-            std::string str_prefix = kgram.vec_splitedHits[0].words;
-            std::string str_prefix_last = (*it_Last).vec_splitedHits[1].words;
-            if(str_prefix == str_prefix_last)
+            if(it != this->m_KGramFingerPrints.begin())
             {
-                this->m_KGramFingerPrints.erase(it_Last);
-                it--;
-                continue;
+                std::vector<KGramHash>::iterator it_Last = it-1;
+                std::string str_prefix = kgram.vec_splitedHits[0].words;
+                std::string str_prefix_last = (*it_Last).vec_splitedHits[1].words;
+                if(str_prefix == str_prefix_last)
+                {
+                    this->m_KGramFingerPrints.erase(it_Last);
+                    it--;
+                    continue;
+                }
             }
         }
     }
@@ -245,6 +249,8 @@ void Document::Dispaly()
     //输出文件的信息
     std::cout<<this->m_strDocName<<std::endl;
     /*
+    //输出文章内容
+    std::cout<<this->m_strContents<<std::endl;
     //输出段落句子的信息
     for(int i=0; i<this->m_vecParagraph.size(); i++)
     {

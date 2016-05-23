@@ -11,16 +11,12 @@ int DocumentOperation::AddDocument(const std::string& str_DocPath)
     //通过文件路径读取文件内容，并进行分词处理，计算simhash值。
     Document* doc = new Document(str_DocPath,true);
     DocumentDao* docDao = new DocumentDao();
-
-    docDao->DeleteAll();
-
     //与数据库中的文件SimHash比较,如果不相同,计算文档指纹并存入数据库中
     const std::string str_SimilarDoc = docDao->QuerySIMSimilarity(doc);
     if(str_SimilarDoc=="")
     {
         //挑选指纹信息并存入
         doc->PickFingerPrints();
-        doc->Dispaly();
         docDao->Insert(doc);
         const char* pch_DocName = doc->GetstrDocName().c_str();
         std::cout<<pch_DocName <<" inserted"<<std::endl;
@@ -48,6 +44,7 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
         std::cout<<"read input dir error"<<std::endl;
         return 1;
     }
+    int i = 0;
     while((ptr=readdir(dir))!=NULL)
     {
         //跳过'.'和'..'两个目录
@@ -56,6 +53,7 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
             continue;
         }
         std::string str_DocPath = str_InputDir + ptr->d_name;
+        std::cout<<++i<<"\t";
         AddDocument(str_DocPath);
     }
     closedir(dir);

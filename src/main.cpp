@@ -24,8 +24,8 @@ int main()
         std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
     }*/
     //将一个目录中的文件加入到数据库中
-    //DocumentOperation::AddDirectoryDocuments(str_InputDir);
-    DocumentOperation::AddDocument("./in/Winnowing.txt");
+    DocumentOperation::AddDirectoryDocuments(str_InputDir);
+    //DocumentOperation::AddDocument("./in/Winnowing.txt");
     //DocumentOperation::AddDocument("./in/测试.txt");
     //查询数据泄露
     std::string str_LeakDoc = "./test/leak.txt";
