@@ -42,11 +42,12 @@ class Document
         std::string m_strDocName;
         std::string m_strContents;
         std::vector<Paragraph> m_vecParagraph;
+        std::vector<std::string> m_vecTitleTerm;
         int m_nWordCount; //文章中的词的总数
         std::map<std::string, double> m_MapTF;//文档词频信息
         SIMHASH_TYPE m_lSimHash;
         std::vector<KGramHash> m_KGramFingerPrints;
-        std::set<std::string> m_SetStopTerm;
+        std::set<std::string> m_setStopTerm;
 };
 
 #endif // DOCUMENT_H

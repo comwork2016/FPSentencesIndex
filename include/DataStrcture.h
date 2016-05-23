@@ -26,6 +26,7 @@ struct TextRange
 //定义结构体，用来存储k-gram组合信息
 struct KGramHash
 {
+    bool b_Last; // 组合中的最后一个KGRAM
     SIMHASH_TYPE hashValue; //组合的hash值
     TextRange textRange; //KGram的组合范围
     std::vector<SplitedHits> vec_splitedHits; //组合包含的分词信息

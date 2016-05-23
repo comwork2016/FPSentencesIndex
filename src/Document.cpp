@@ -23,7 +23,6 @@ Document::Document(const std::string& str_DocPath,bool b_Split)
             std::cout<<"open file "<<this->m_strDocPath<<" error"<<std::endl;
             return;
         }
-        TFNormalization();
         CalcDocSimHash();
     }
     else
@@ -94,38 +93,20 @@ int Document::ReadDocumentAndSplit()
                 int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
                 std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
                 splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF,this->m_nWordCount);
+                //提取文章标题中的词语
+                if(this->m_vecParagraph.empty() && j==0) //如果是第一段的第一句话，则为文章的标题
+                {
+                    for(int k =0; k<sen.vec_splitedHits.size(); k++)
+                    {
+                        this->m_vecTitleTerm.push_back(sen.vec_splitedHits[k].words);
+                    }
+                }
             }
             this->m_vecParagraph.push_back(para);
         }
     }
     ifs_Doc.close();
     return OK_READFILE;
-}
-
-/**
-    词频标准化
-*/
-void Document::TFNormalization()
-{
-    /*//统计词频出现最高的词语
-    double d_MaxTF = 0;
-    //std::string str_MaxTerm;
-    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
-    {
-        double d_TF = it->second;
-        if(d_TF > d_MaxTF)
-        {
-            d_MaxTF = d_TF;
-            //str_MaxTerm = it->first;
-        }
-    }
-    //std::cout<<str_MaxTerm<<","<<d_MaxTF<<std::endl;*/
-    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
-    {
-        std::string str_term = it->first;
-        double d_TF = it->second / this->m_nWordCount;
-        this->m_MapTF[str_term] = d_TF;
-    }
 }
 
 /**
@@ -145,15 +126,25 @@ void Document::CalcDocSimHash()
         }
     }
     this->m_lSimHash = HashUtil::CalcDocSimHash(this->m_KGramFingerPrints);
-    /*
-        //对map按值排序
-        std::vector<TFPair> vec_TFPair = SortUtil::SortTFMap(map_TF);
-        //遍历map
-        for(std::vector<TFPair>::iterator it = vec_TFPair.begin(); it != vec_TFPair.end(); it++)
-        {
-            std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
-        }
-    */
+}
+
+/**
+    词频标准化
+*/
+void Document::TFNormalization()
+{
+    //对在文章标题中出现的词语，加大词语的权重，作为5个平常词语出现
+    for(int i=0;i<this->m_vecTitleTerm.size();i++)
+    {
+        std::string str_term = this->m_vecTitleTerm[i];
+        this->m_MapTF[str_term] += 4;
+    }
+    for(std::map<std::string,double>::iterator it = this->m_MapTF.begin(); it != this->m_MapTF.end(); it++)
+    {
+        std::string str_term = it->first;
+        double d_TF = it->second / this->m_nWordCount;
+        this->m_MapTF[str_term] = d_TF;
+    }
 }
 
 /**
@@ -173,7 +164,7 @@ void Document::PickStopTerm()
             //std::cout<<str_term<<":"<<d_tf_idf<<std::endl;
             if(d_tf_idf > 1)//当词语的逆文档频率小于阈值时，加入停用词集合
             {
-                this->m_SetStopTerm.insert(str_term);
+                this->m_setStopTerm.insert(str_term);
             }
         }
     }
@@ -184,25 +175,66 @@ void Document::PickStopTerm()
 */
 void Document::PickFingerPrints()
 {
+    TFNormalization();
     PickStopTerm();//挑选停用词
     for(std::vector<KGramHash>::iterator it = this->m_KGramFingerPrints.begin(); it != this->m_KGramFingerPrints.end(); it++)
     {
         KGramHash kgram = *it;
-        std::string str_prefix = kgram.vec_splitedHits[0].words;
-        //在停用词集合中查找，不存在则删除
-        if( this->m_SetStopTerm.find(str_prefix) != this->m_SetStopTerm.end())
+        //删除前缀为停用词语的指纹，并且删除相似度较高的指纹
+        if(!kgram.b_Last)
         {
-            this->m_KGramFingerPrints.erase(it);
-            it--;
-        }
-        else if(it != this->m_KGramFingerPrints.begin())//对比上一个指纹，如果vsm相似度高达（KGRAME-2）/KGRAME，则删除
-        {
-            std::vector<KGramHash>::iterator it_Last = it-1;
-            std::string str_prefix_last = (*it_Last).vec_splitedHits[1].words;
-            if(str_prefix == str_prefix_last)
+            std::string str_prefix = kgram.vec_splitedHits[0].words;
+            //在停用词集合中查找，不存在则删除
+            if( this->m_setStopTerm.find(str_prefix) != this->m_setStopTerm.end())
             {
                 this->m_KGramFingerPrints.erase(it);
                 it--;
+                continue;
+            }
+            else if(it != this->m_KGramFingerPrints.begin())//对比上一个指纹，如果vsm相似度高达（KGRAME-2）/KGRAME，则删除
+            {
+                std::vector<KGramHash>::iterator it_Last = it-1;
+                std::string str_prefix_last1 = (*it_Last).vec_splitedHits[1].words;
+                if(str_prefix == str_prefix_last1)
+                {
+                    this->m_KGramFingerPrints.erase(it);
+                    it--;
+                    continue;
+                }
+            }
+        }
+        //对保留下来的指纹，查看KGRAM中停用词的比例
+        int n_StopTerm = 0;
+        bool b_kept = true;
+        for(int ik = 0; ik <KGRAM; ik++)
+        {
+            std::string str_term = kgram.vec_splitedHits[ik].words;
+            if( this->m_setStopTerm.find(str_term) != this->m_setStopTerm.end())
+            {
+                n_StopTerm++;
+                if(n_StopTerm >= STFGATE)//停用词超出比例范围时，删除该指纹
+                {
+                    this->m_KGramFingerPrints.erase(it);
+                    it--;
+                    b_kept = false;
+                    break;
+                }
+                if(ik - n_StopTerm > KGRAM - STFGATE)//没有超过比例时，不再比较
+                {
+                    break;
+                }
+            }
+        }
+        if(b_kept && kgram.b_Last) //如果最后一个指纹保留了，则删除上一个vsm相似度高的指纹
+        {
+            std::vector<KGramHash>::iterator it_Last = it-1;
+            std::string str_prefix = kgram.vec_splitedHits[0].words;
+            std::string str_prefix_last = (*it_Last).vec_splitedHits[1].words;
+            if(str_prefix == str_prefix_last)
+            {
+                this->m_KGramFingerPrints.erase(it_Last);
+                it--;
+                continue;
             }
         }
     }
@@ -238,7 +270,8 @@ void Document::Dispaly()
             std::cout<<hits.words<<"\t";
             //std::cout<<"["<<hits.hashValue<<"]"<<hits.words<<"\t";
         }
-        std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]"<<std::endl;
+        //std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]"<<std::endl;
+        std::cout<<std::endl;
     }
     std::cout<<this->m_KGramFingerPrints.size()<<std::endl;
     std::cout<<this->m_lSimHash<<std::endl;

@@ -1,5 +1,6 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
+#include <cmath>
 
 typedef long long SIMHASH_TYPE;
 
@@ -20,5 +21,6 @@ const SIMHASH_TYPE MODNUM = (((unsigned SIMHASH_TYPE)1 << (SIMHASHBITS-1))- 1)/B
 const int WINDOWSIZE = 10;
 
 const double TFGATE = 50;
+const int STFGATE = std::ceil(0.8 * KGRAM); //KGRMA中停用词的比例小于80%
 
 #endif // CONSTANTS_H_INCLUDED

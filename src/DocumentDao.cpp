@@ -124,7 +124,7 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
             // 最后一个向后扩展匹配至当前相同文本的开始偏移值
             int n_SearchLastEnd = textrange_SearchDocLast.offset_end;
             int n_DBLastEnd = textrange_DBDocLast.offset_end;
-            while(n_SearchLastEnd < textrange_SearchDoc.offset_begin && n_DBLastEnd < textrange_DBDoc.offset_begin && doc->GetstrContents()[n_SearchLastEnd] == docDB->GetstrContents()[n_DBLastEnd])
+            while(n_SearchLastEnd <= textrange_SearchDoc.offset_begin && n_DBLastEnd <= textrange_DBDoc.offset_begin && doc->GetstrContents()[n_SearchLastEnd] == docDB->GetstrContents()[n_DBLastEnd])
             {
                 n_SearchLastEnd++;
                 n_DBLastEnd++;
@@ -132,7 +132,7 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
             //当前一个向前扩展匹配至上一个相同文本的最后偏移值
             int n_SearchBegin = textrange_SearchDoc.offset_begin;
             int n_DBBegin = textrange_DBDoc.offset_begin;
-            while(n_SearchBegin >=textrange_SearchDocLast.offset_end && n_DBBegin>=textrange_DBDocLast.offset_end && doc->GetstrContents()[n_SearchBegin] == docDB->GetstrContents()[n_DBBegin])
+            while(n_SearchBegin >= textrange_SearchDocLast.offset_end && n_DBBegin>=textrange_DBDocLast.offset_end && doc->GetstrContents()[n_SearchBegin] == docDB->GetstrContents()[n_DBBegin])
             {
                 n_SearchBegin--;
                 n_DBBegin--;
@@ -212,7 +212,6 @@ std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocu
         std::vector<TextRange> vec_DBDocSimilarTextRange;//数据库的文档中相同指纹范围
         //遍历待比对的文档指纹
         std::vector<KGramHash> docFingerPrints = doc->GetKGramFingerPrints();
-        const int n_wcharBit = sizeof(wchar_t) - 1;
         for(std::vector<KGramHash>::iterator it = docFingerPrints.begin(); it!= docFingerPrints.end(); it++)
         {
             KGramHash kgramHash_SearchDoc = *it;

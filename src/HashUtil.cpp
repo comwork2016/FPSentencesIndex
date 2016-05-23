@@ -49,9 +49,11 @@ std::vector<KGramHash> HashUtil::GetKGramAndCalcKRHash(const Sentence& sen)
     //初始化kgramhash
     int n_kcount = 0;
     KGramHash kgram_Now;
+    kgram_Now.b_Last = false;
     kgram_Now.hashValue = 0;
     kgram_Now.vec_splitedHits.clear();
     KGramHash kgram_Last;
+    kgram_Last.b_Last = false;
     kgram_Last.hashValue = 0;
     kgram_Last.vec_splitedHits.clear();
     SIMHASH_TYPE l_SimHash = 0;
@@ -97,6 +99,7 @@ std::vector<KGramHash> HashUtil::GetKGramAndCalcKRHash(const Sentence& sen)
     // 计算偏移信息并保存kgram的信息
     kgram_Now.textRange.offset_begin = kgram_Now.vec_splitedHits[0].offset;
     kgram_Now.textRange.offset_end = kgram_Now.vec_splitedHits[KGRAM-1].offset + kgram_Now.vec_splitedHits[KGRAM-1].length;
+    kgram_Now.b_Last = true;
     vec_KGramHash.push_back(kgram_Now);
     return vec_KGramHash;
 }
