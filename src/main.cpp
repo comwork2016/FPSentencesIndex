@@ -12,7 +12,6 @@ int main()
     start = clock();
     //设置全局环境本地化
     std::locale::global(std::locale(""));
-    std::string str_InputDir = "./in/";
     //读取语料库中的词频信息
     ReadCorpus::ReadCorpusTF("./Corpus/Corpus.csv");
     //输出语料库信息
@@ -24,12 +23,13 @@ int main()
         std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
     }*/
     //将一个目录中的文件加入到数据库中
+    std::string str_InputDir = "./in/";
     DocumentOperation::AddDirectoryDocuments(str_InputDir);
     //DocumentOperation::AddDocument("./in/Winnowing.txt");
-    //DocumentOperation::AddDocument("./in/测试.txt");
+    //DocumentOperation::AddDocument("./in/utf_12.txt");
     //查询数据泄露
-    std::string str_LeakDoc = "./test/leak.txt";
-    DocumentOperation::SearchLeak(str_LeakDoc);
+    //std::string str_LeakDoc = "./test/leak.txt";
+    //DocumentOperation::SearchLeak(str_LeakDoc);
     finish = clock();
     double duration = (double)(finish - start) / CLOCKS_PER_SEC;
     std::cout<<std::endl<<std::endl<<"cost "<<duration<<" secs"<<std::endl<<std::endl;

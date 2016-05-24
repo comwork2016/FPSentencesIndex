@@ -14,6 +14,7 @@ class DocumentOperation
         DocumentOperation();
         virtual ~DocumentOperation();
         static int AddDocument(const std::string& str_DocPath);
+        static int InsertDocuments(const std::vector<Document*> vec_Doc);
         static int AddDirectoryDocuments(const std::string& str_InputDir);
         static int SearchLeak(const std::string& str_DocPath);
     protected:

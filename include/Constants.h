@@ -4,7 +4,17 @@
 
 typedef long long SIMHASH_TYPE;
 
+typedef std::pair<std::string,double> TFPair;//存储词频信息
+
+//定义结构体，文档某一段之间的内容
+struct TextRange
+{
+    int offset_begin;//起始偏移值
+    int offset_end;//结束偏移值
+};
+
 const int ERROR_OPENFILE = -1;
+
 const int OK_READFILE = 0;
 
 const int LINE_LENGTH = 10240;

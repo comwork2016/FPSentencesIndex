@@ -4,7 +4,7 @@
    文档构造函数
    处理文件路径，文件名读取文档内容。
 */
-Document::Document(const std::string& str_DocPath,bool b_Split)
+Document::Document(const std::string& str_DocPath,bool b_SplitToSentence,bool b_SplitToWords)
 {
     this->m_strDocPath = str_DocPath;
     int n_SeparatorIndex = str_DocPath.find_last_of("/");
@@ -12,19 +12,20 @@ Document::Document(const std::string& str_DocPath,bool b_Split)
     this->m_strContents = "";
     this->m_lSimHash = 0;
     this->m_nWordCount = 0;
-    this->m_vecTitleTerm.clear();
-    this->m_MapTF.clear();
-    this->m_vecParagraph.clear();
-    if(b_Split)
+    if(b_SplitToSentence)
     {
         //读取文档内容
-        int n_ReadStats = ReadDocumentAndSplit();
+        int n_ReadStats = ReadDocumentAndSplitToSentence();
         if(n_ReadStats == ERROR_OPENFILE)
         {
             std::cout<<"open file "<<this->m_strDocPath<<" error"<<std::endl;
             return;
         }
-        CalcDocSimHash();
+        if(b_SplitToWords)
+        {
+            SplitSentenceToWords();
+            CalcDocSimHash();
+        }
     }
     else
     {
@@ -55,7 +56,7 @@ int Document::ReadDocumentContent()
     程序中，将一行内容作为一个段落
     并用常见符号将段落分割成句子
 */
-int Document::ReadDocumentAndSplit()
+int Document::ReadDocumentAndSplitToSentence()
 {
     std::ifstream ifs_Doc;
     ifs_Doc.open((char *)this->m_strDocPath.c_str(),std::ios_base::in);
@@ -64,7 +65,6 @@ int Document::ReadDocumentAndSplit()
         return ERROR_OPENFILE;
     }
     int offset=0;
-    SplitUtil* splitUtil = new SplitUtil();
     while(!ifs_Doc.eof())
     {
         Paragraph para;
@@ -87,27 +87,40 @@ int Document::ReadDocumentAndSplit()
             //对段落进行句子的拆分
             std::string str = this->m_strContents.substr(para.textRange.offset_begin,para.textRange.offset_end - para.textRange.offset_begin);
             SplitUtil::SplitParaphToSentence(para,str);
-            //对句子进行分词处理
-            for(int j = 0; j<para.vec_Sentences.size(); j++)
-            {
-                Sentence& sen = para.vec_Sentences[j];
-                int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
-                std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
-                splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF,this->m_nWordCount);
-                //提取文章标题中的词语
-                if(this->m_vecParagraph.empty() && j==0) //如果是第一段的第一句话，则为文章的标题
-                {
-                    for(int k =0; k<sen.vec_splitedHits.size(); k++)
-                    {
-                        this->m_vecTitleTerm.push_back(sen.vec_splitedHits[k].words);
-                    }
-                }
-            }
             this->m_vecParagraph.push_back(para);
         }
     }
     ifs_Doc.close();
     return OK_READFILE;
+}
+
+/**
+    将句子分词处理
+*/
+void Document::SplitSentenceToWords()
+{
+    SplitUtil* splitUtil = new SplitUtil();
+    for(int i=0; i<this->m_vecParagraph.size(); i++)
+    {
+        Paragraph& para = this->m_vecParagraph[i];
+        //对句子进行分词处理
+        for(int j = 0; j<para.vec_Sentences.size(); j++)
+        {
+            Sentence& sen = para.vec_Sentences[j];
+            int n_SenLen = sen.textRange.offset_end-sen.textRange.offset_begin;
+            std::string str_sentence = this->m_strContents.substr(sen.textRange.offset_begin,n_SenLen);
+            splitUtil->SplitTermAndCalcTF(sen,str_sentence,this->m_MapTF,this->m_nWordCount);
+            //提取文章标题中的词语
+            if(i==0 && j==0) //如果是第一段的第一句话，则为文章的标题
+            {
+                for(int k =0; k<sen.vec_splitedHits.size(); k++)
+                {
+                    this->m_vecTitleTerm.push_back(sen.vec_splitedHits[k].words);
+                }
+            }
+        }
+    }
+    delete splitUtil;
 }
 
 /**
@@ -185,8 +198,9 @@ void Document::PickFingerPrints()
         if(!kgram.b_Last)
         {
             std::string str_prefix = kgram.vec_splitedHits[0].words;
-            //在停用词集合中查找，不存在则删除
-            if( this->m_setStopTerm.find(str_prefix) != this->m_setStopTerm.end())
+            const int n_wcharBit = sizeof(wchar_t) - 1; //一个宽字节字符所占的bit数
+            //前缀为一个字（最后一个指纹除外）或者为停用词，则删除
+            if( kgram.vec_splitedHits[0].length == n_wcharBit || this->m_setStopTerm.find(str_prefix) != this->m_setStopTerm.end())
             {
                 this->m_KGramFingerPrints.erase(it);
                 it--;
@@ -266,7 +280,7 @@ void Document::Dispaly()
         }
     }*/
 
-    /*//遍历k-gram词组的hash值和文本范围*/
+    /*//遍历k-gram词组的hash值和文本范围
     for(int i=0; i<this->m_KGramFingerPrints.size(); i++)
     {
         std::cout<<this->m_KGramFingerPrints[i].hashValue<<"\t";
@@ -278,7 +292,7 @@ void Document::Dispaly()
         }
         //std::cout<<"["<<this->m_KGramFingerPrints[i].textRange.offset_begin<<","<<this->m_KGramFingerPrints[i].textRange.offset_end<<"]"<<std::endl;
         std::cout<<std::endl;
-    }
+    }*/
     std::cout<<this->m_KGramFingerPrints.size()<<std::endl;
     std::cout<<this->m_lSimHash<<std::endl;
 }
@@ -286,4 +300,20 @@ void Document::Dispaly()
 Document::~Document()
 {
     //dtor
+    //释放文档信息使用的内存
+    for(int i=0; i<this->m_vecParagraph.size(); i++)
+    {
+        Paragraph& para = m_vecParagraph[i];
+        for(int j = 0; j<para.vec_Sentences.size(); j++)
+        {
+            Sentence& sen = para.vec_Sentences[j];
+            sen.vec_splitedHits.clear();
+        }
+        para.vec_Sentences.clear();
+    }
+    this->m_vecParagraph.clear();
+    this->m_vecTitleTerm.clear();
+    this->m_MapTF.clear();
+    this->m_KGramFingerPrints.clear();
+    this->m_setStopTerm.clear();
 }

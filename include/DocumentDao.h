@@ -11,7 +11,7 @@ class DocumentDao
         DocumentDao();
         virtual ~DocumentDao();
 
-        int Insert(const Document* doc);
+        int InsertDocument(const Document* doc);
         int DeleteAll();
         std::string QuerySIMSimilarity(const Document* doc);
         std::vector<FingerPrintsSimilarDocument> GetFingerPrintsSimilarDocument(Document* doc);

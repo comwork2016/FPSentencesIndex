@@ -20,17 +20,29 @@
 class Document
 {
     public:
-        Document(const std::string& str_DocPath,bool b_Split = false);
+        Document(const std::string& str_DocPath,bool b_SplitToSentence = false, bool b_SplitToWords = false);
         virtual ~Document();
         std::string GetstrDocPath() const { return m_strDocPath; }
         std::string GetstrDocName() const { return m_strDocName; }
         std::string GetstrContents() const { return m_strContents; }
+
+        void SetvecParagraph(std::vector<Paragraph> vec_Paragraph ) { m_vecParagraph = vec_Paragraph; }
         std::vector<Paragraph> GetvecParagraph() const { return m_vecParagraph; }
+
         std::vector<KGramHash> GetKGramFingerPrints() const { return m_KGramFingerPrints; }
         SIMHASH_TYPE GetlSimHash() const { return m_lSimHash; }
 
-        int ReadDocumentAndSplit();
+        void SetMapTF(std::map<std::string, double> map_TF) { m_MapTF = map_TF; }
+        std::map<std::string, double> GetMapTF() { return m_MapTF; }
+
+        void SetnWordCount(int n_WordCount) { m_nWordCount = n_WordCount; }
+        int GetnWordCount() { m_nWordCount; }
+
+        void SetvecTitleTerm(std::vector<std::string> vec_TitleTerm) { m_vecTitleTerm = vec_TitleTerm; }
+
         int ReadDocumentContent();
+        int ReadDocumentAndSplitToSentence();
+        void SplitSentenceToWords();
         void TFNormalization();
         void CalcDocSimHash();
         void PickStopTerm();

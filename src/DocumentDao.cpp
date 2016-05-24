@@ -8,8 +8,10 @@ DocumentDao::DocumentDao()
     this->m_Conn.connect(this->m_Host);
 }
 
-//插入一个文档到数据库中
-int DocumentDao::Insert(const Document* doc)
+/**
+    插入一个文档到数据库中
+*/
+int DocumentDao::InsertDocument(const Document* doc)
 {
     mongo::BSONObjBuilder b;
     //保存文档信息
@@ -237,6 +239,7 @@ std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocu
         {
             Document* docDB = new Document(str_DocPathInDB);
             ExtendMatch(doc,docDB,vec_SearchDocSimilarTextRange,vec_DBDocSimilarTextRange,n_SameContentsBytes);
+            delete docDB;
         }
         //遍历完成之后计算相似度
         if(n_SameContentsBytes!=0)
