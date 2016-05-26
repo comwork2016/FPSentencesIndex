@@ -30,7 +30,13 @@ class Document
         std::vector<Paragraph> GetvecParagraph() const { return m_vecParagraph; }
 
         std::vector<KGramHash> GetKGramFingerPrints() const { return m_KGramFingerPrints; }
+
         SIMHASH_TYPE GetlSimHash() const { return m_lSimHash; }
+
+        SIMHASH_TYPE GetlSimHash16_1() const { return m_lSimHash16_1; }
+        SIMHASH_TYPE GetlSimHash16_2() const { return m_lSimHash16_2; }
+        SIMHASH_TYPE GetlSimHash16_3() const { return m_lSimHash16_3; }
+        SIMHASH_TYPE GetlSimHash16_4() const { return m_lSimHash16_4; }
 
         void SetMapTF(std::map<std::string, double> map_TF) { m_MapTF = map_TF; }
         std::map<std::string, double> GetMapTF() { return m_MapTF; }
@@ -57,9 +63,13 @@ class Document
         std::vector<std::string> m_vecTitleTerm;
         int m_nWordCount; //文章中的词的总数
         std::map<std::string, double> m_MapTF;//文档词频信息
-        SIMHASH_TYPE m_lSimHash;
-        std::vector<KGramHash> m_KGramFingerPrints;
         std::set<std::string> m_setStopTerm;
+        SIMHASH_TYPE m_lSimHash;
+        SIMHASH_TYPE m_lSimHash16_1;//simhash0-15位
+        SIMHASH_TYPE m_lSimHash16_2;//simhash16-31位
+        SIMHASH_TYPE m_lSimHash16_3;//simhash32-47位
+        SIMHASH_TYPE m_lSimHash16_4;//simhash48-63位
+        std::vector<KGramHash> m_KGramFingerPrints;
 };
 
 #endif // DOCUMENT_H

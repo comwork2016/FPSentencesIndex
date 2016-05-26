@@ -25,8 +25,6 @@ const int SIMHASHBITS = 64;
 
 const int KGRAM = 6;
 const int BASE = 12;
-//const SIMHASH_TYPE MODNUM = ((unsigned SIMHASH_TYPE)1 << (SIMHASHBITS-1))- 1;
-//const SIMHASH_TYPE MODNUM = 9223372036854775783L; //64位长整形的最大质数
 const SIMHASH_TYPE MODNUM = (((unsigned SIMHASH_TYPE)1 << (SIMHASHBITS-1))- 1)/BASE; //不能取太大的值，否则在计算KRHash时会发生溢出，导致结果不准确
 const int WINDOWSIZE = 10;
 

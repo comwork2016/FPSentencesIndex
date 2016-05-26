@@ -20,6 +20,10 @@ int DocumentDao::InsertDocument(const Document* doc)
     const char* pch_Contents= doc->GetstrContents().c_str();
     b.append("filelength",static_cast<int>(StringUtil::ConvertCharArraytoWString(pch_Contents).length()));
     b.appendNumber("docsimhash",static_cast<long long>(doc->GetlSimHash()));
+    b.appendNumber("docsimhash1",static_cast<long long>(doc->GetlSimHash16_1()));
+    b.appendNumber("docsimhash2",static_cast<long long>(doc->GetlSimHash16_2()));
+    b.appendNumber("docsimhash3",static_cast<long long>(doc->GetlSimHash16_3()));
+    b.appendNumber("docsimhash4",static_cast<long long>(doc->GetlSimHash16_4()));
     b.appendNumber("fingersize",doc->GetKGramFingerPrints().size());
     std::vector<KGramHash> vec_FingerPrints = doc->GetKGramFingerPrints();
     mongo::BSONObjBuilder bb;
@@ -51,8 +55,14 @@ int DocumentDao::DeleteAll()
 std::string DocumentDao::QuerySIMSimilarity(const Document* doc)
 {
     std::cout<<"Query similar simhash of document "<<doc->GetstrDocName()<<std::endl;
+    std::string str_SimilarDoc = "";
+    mongo::BSONObj bson_condition1 = BSON("docsimhash1"<<static_cast<long long>(doc->GetlSimHash16_1()));
+    mongo::BSONObj bson_condition2 = BSON("docsimhash2"<<static_cast<long long>(doc->GetlSimHash16_2()));
+    mongo::BSONObj bson_condition3 = BSON("docsimhash3"<<static_cast<long long>(doc->GetlSimHash16_3()));
+    mongo::BSONObj bson_condition4 = BSON("docsimhash4"<<static_cast<long long>(doc->GetlSimHash16_4()));
+    mongo::BSONObj bson_condition = mongo::OR(bson_condition1,bson_condition2,bson_condition3,bson_condition4);
     mongo::BSONObj bo_columns = BSON("docsimhash"<<1<<"filelength"<<1<<"filepath"<<1);
-    mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,mongo::Query(),0,0,&bo_columns);
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,bson_condition,0,0,&bo_columns);
     while (cursor->more())
     {
         mongo::BSONObj p = cursor->next();
@@ -64,15 +74,14 @@ std::string DocumentDao::QuerySIMSimilarity(const Document* doc)
             const char* pch_Contents= doc->GetstrContents().c_str();
             int n_DocFileLength = StringUtil::ConvertCharArraytoWString(pch_Contents).length();
             float f_LengthSim = (float)(n_DBFileLength-n_DocFileLength)/(n_DocFileLength>n_DBFileLength?n_DocFileLength:n_DBFileLength);
-            if( f_LengthSim >= 0.2)
+            if( f_LengthSim < 0.2)
             {
-                return "";
+                str_SimilarDoc = std::string(p.getStringField("filepath"));
+                break;
             }
-            std::string str_SimilarDoc = std::string(p.getStringField("filepath"));
-            return str_SimilarDoc;
         }
     }
-    return "";
+    return str_SimilarDoc;
 }
 
 /**

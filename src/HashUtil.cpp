@@ -7,6 +7,7 @@ HashUtil::HashUtil()
 
 /**
     计算文本的hash值
+    BKDR Hash Function
 */
 SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
 {
@@ -21,18 +22,21 @@ SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
             std::string stri = vec_strSplited[i];
             SIMHASH_TYPE l_HashI = CalcStringHash(stri);
             l_Hash += l_HashI;
+            l_Hash = l_Hash % MODNUM;
         }
     }
     else
     {
         std::wstring wstr = StringUtil::ConvertCharArraytoWString(str);
+        int seed = 131313; // 31 131 1313 13131 131313 etc..
         for(int i=0; i<wstr.length(); i++)
         {
             wchar_t c = wstr.at(i);
-            //std::wcout<<c<<":"<<int(c)<<std::endl;
-            l_Hash = ( BASE * l_Hash +  int(c)*BASE) % MODNUM;
+            //将单个字符转换成64位的hash值
+            l_Hash = l_Hash * seed +  int(c);
         }
     }
+    l_Hash = (l_Hash & 0x7FFFFFFFFFFFFFFF) % MODNUM;
     return l_Hash;
 }
 
@@ -146,7 +150,7 @@ SIMHASH_TYPE HashUtil::CalcSimHash(const std::vector<T>& vec_SimHash)
         for (int j = 0; j < SIMHASHBITS - 1; j++)
         {
             SIMHASH_TYPE bitmask = (unsigned SIMHASH_TYPE)1 << j; //位的掩码:向左移j位
-            SIMHASH_TYPE bit = l_Hash&bitmask;
+            SIMHASH_TYPE bit = l_Hash & bitmask;
             if (bit != 0)
             {
                 v[j] += 1;

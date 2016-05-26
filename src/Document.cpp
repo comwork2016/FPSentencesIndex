@@ -142,6 +142,11 @@ void Document::CalcDocSimHash()
         }
     }
     this->m_lSimHash = HashUtil::CalcDocSimHash(this->m_KGramFingerPrints);
+    //将simhash分成4部分，分别保存起来，便于海量数据的查询
+    this->m_lSimHash16_1  = this->m_lSimHash & 0xFFFF000000000000;
+    this->m_lSimHash16_2  = this->m_lSimHash & 0xFFFF00000000;
+    this->m_lSimHash16_3  = this->m_lSimHash & 0xFFFF0000;
+    this->m_lSimHash16_4  = this->m_lSimHash & 0xFFFF;
 }
 
 /**
