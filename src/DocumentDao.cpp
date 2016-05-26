@@ -26,20 +26,20 @@ int DocumentDao::InsertDocument(const Document* doc)
     b.appendNumber("docsimhash4",static_cast<long long>(doc->GetlSimHash16_4()));
     b.appendNumber("fingersize",doc->GetKGramFingerPrints().size());
     std::vector<KGramHash> vec_FingerPrints = doc->GetKGramFingerPrints();
-    mongo::BSONObjBuilder bb;
+    mongo::BSONArrayBuilder bb_FPArray;
     for(std::vector<KGramHash>::iterator it = vec_FingerPrints.begin(); it!=vec_FingerPrints.end(); it++)
     {
+        mongo::BSONObjBuilder bb_fp;
         KGramHash kgramHash = *it;
-        SIMHASH_TYPE l_Hash = kgramHash.hashValue;
-        std::stringstream ss;
-        ss << l_Hash;
-        std::string str_Hash = ss.str();
+        bb_fp.appendNumber("hash",static_cast<long long>(kgramHash.hashValue));
         mongo::BSONObjBuilder bb_offset;
         bb_offset.append("begin",kgramHash.textRange.offset_begin);
         bb_offset.append("end",kgramHash.textRange.offset_end);
-        bb.append(str_Hash,bb_offset.obj());
+        //bb.append(str_Hash,bb_offset.obj());
+        bb_fp.append("pos",bb_offset.obj());
+        bb_FPArray.append(bb_fp.obj());
     }
-    b.append("fingerprints",bb.obj());
+    b.append("fingerprints",bb_FPArray.arr());
     this->m_Conn.insert(this->m_DBName,b.obj());
     return 0;
 }
@@ -47,7 +47,8 @@ int DocumentDao::InsertDocument(const Document* doc)
 //插入一个文档到数据库中
 int DocumentDao::DeleteAll()
 {
-    this->m_Conn.dropCollection(this->m_DBName);
+    //this->m_Conn.dropCollection(this->m_DBName);
+    this->m_Conn.remove(this->m_DBName,mongo::Query());
     return 0;
 }
 

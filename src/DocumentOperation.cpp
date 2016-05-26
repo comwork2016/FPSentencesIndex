@@ -62,35 +62,8 @@ int DocumentOperation::InsertDocuments(const std::vector<Document*> vec_Doc)
     delete docDao;
 }
 
-//将整个目录中的文件添加到数据库中
-int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
+void DocumentOperation::SplitDocumentsToTermAndCalcSimhash(std::vector<Document*> vec_Documents)
 {
-    DocumentDao* docDao = new DocumentDao();
-    docDao->DeleteAll();
-    delete docDao;
-
-    std::vector<Document*> vec_Documents;
-    //读取目录下所有的文件
-    struct dirent *ptr;
-    DIR *dir;
-    dir=opendir((char *)str_InputDir.c_str());
-    if(!dir)
-    {
-        std::cout<<"read input dir error"<<std::endl;
-        return 1;
-    }
-    while((ptr=readdir(dir))!=NULL)
-    {
-        //跳过'.'和'..'两个目录
-        if(ptr->d_name[0] == '.' || ptr->d_name[strlen(ptr->d_name)-1] == '~')
-        {
-            continue;
-        }
-        std::string str_DocPath = str_InputDir + ptr->d_name;
-        Document* doc = new Document(str_DocPath,true);//分句但不分词
-        vec_Documents.push_back(doc);
-    }
-    closedir(dir);
     //对所有文档进行分词处理，并计算simhash，挑选指纹
     SplitUtil* splitUtil = new SplitUtil();
     for(int i=0; i<vec_Documents.size(); i++)
@@ -128,6 +101,41 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
         doc->CalcDocSimHash();
     }
     delete splitUtil;
+}
+
+//将整个目录中的文件添加到数据库中
+int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
+{
+    DocumentDao* docDao = new DocumentDao();
+    docDao->DeleteAll();
+    delete docDao;
+
+    std::cin.get();
+
+    std::vector<Document*> vec_Documents;
+    //读取目录下所有的文件
+    struct dirent *ptr;
+    DIR *dir;
+    dir=opendir((char *)str_InputDir.c_str());
+    if(!dir)
+    {
+        std::cout<<"read input dir error"<<std::endl;
+        return 1;
+    }
+    while((ptr=readdir(dir))!=NULL)
+    {
+        //跳过'.'和'..'两个目录
+        if(ptr->d_name[0] == '.' || ptr->d_name[strlen(ptr->d_name)-1] == '~')
+        {
+            continue;
+        }
+        std::string str_DocPath = str_InputDir + ptr->d_name;
+        Document* doc = new Document(str_DocPath,true);//分句但不分词
+        vec_Documents.push_back(doc);
+    }
+    closedir(dir);
+    //将文档分词并计算simhash
+    SplitDocumentsToTermAndCalcSimhash(vec_Documents);
     //将文档集合添加到数据库中
     InsertDocuments(vec_Documents);
     //释放所有文档资源

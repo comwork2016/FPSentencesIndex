@@ -17,9 +17,9 @@ int main()
     //输出语料库信息
     //将一个目录中的文件加入到数据库中
     std::string str_InputDir = "./in/";
-    //DocumentOperation::AddDirectoryDocuments(str_InputDir);
+    DocumentOperation::AddDirectoryDocuments(str_InputDir);
     //DocumentOperation::AddDocument("./in/Winnowing.txt");
-    //DocumentOperation::AddDocument("./in/utf_12.txt");
+    //DocumentOperation::AddDocument("./in/utf_104.txt");
     //查询数据泄露
     std::string str_LeakDoc = "./test/leak.txt";
     DocumentOperation::SearchLeak(str_LeakDoc);
