@@ -110,8 +110,6 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
     docDao->DeleteAll();
     delete docDao;
 
-    std::cin.get();
-
     std::vector<Document*> vec_Documents;
     //读取目录下所有的文件
     struct dirent *ptr;

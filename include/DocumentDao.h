@@ -4,6 +4,7 @@
 #include "mongo/client/dbclient.h"
 #include "Document.h"
 #include "Constants.h"
+#include <vector>
 
 class DocumentDao
 {
