@@ -74,13 +74,17 @@ std::string DocumentDao::QuerySIMSimilarity(const Document* doc)
     return "";
 }
 
-//对相同内容进行扩展匹配
+/**
+    对相同内容进行扩展匹配
+    汉字的第一个字节的最高为为1
+    英文最高位为0，且小于等于127
+    传入的范围不一定相邻，所以要在整体上合并范围
+*/
 void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::vector<TextRange>& vec_SearchDocSimilarTextRange,std::vector<TextRange>& vec_DBDocSimilarTextRange,int& n_SameContentsBytes)
 {
     //待比对的文档中相同指纹范围 和 数据库的文档中相同指纹范围；
     std::vector<TextRange> vec_ExtendedSearchDocSimilarTextRange;
     std::vector<TextRange> vec_ExtendedDBDocSimilarTextRange;
-    const int n_wcharBit = sizeof(wchar_t) - 1; //一个宽字节字符所占的bit数
 
     //对第一处相同的指纹进行向前扩展匹配
     TextRange textrange_SearchDocFirst = vec_SearchDocSimilarTextRange[0];
@@ -92,10 +96,17 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
         n_SearchBegin--;
         n_DBBegin--;
     }
-    //计算扩展时相同的字符个数
-    int n_NumOfWchar = (textrange_SearchDocFirst.offset_begin - n_SearchBegin - 1)/n_wcharBit;
-    textrange_SearchDocFirst.offset_begin -= n_NumOfWchar*n_wcharBit;
-    textrange_DBDocFirst.offset_begin -= n_NumOfWchar*n_wcharBit;
+    //回到相等的位置
+    n_SearchBegin++;
+    n_DBBegin++;
+    //判断是否是一个字符的边界
+    while(doc->GetstrContents()[n_SearchBegin] > 127 && docDB->GetstrContents()[n_DBBegin] > 127)//既不是英文数字，也不是中文的第一个字节
+    {
+        n_SearchBegin++;
+        n_DBBegin++;
+    }
+    textrange_SearchDocFirst.offset_begin = n_SearchBegin;
+    textrange_DBDocFirst.offset_begin = n_DBBegin;
     //添加到扩展范围向量中
     n_SameContentsBytes += textrange_SearchDocFirst.offset_end - textrange_SearchDocFirst.offset_begin;
     vec_ExtendedSearchDocSimilarTextRange.push_back(textrange_SearchDocFirst);
@@ -126,7 +137,7 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
             // 最后一个向后扩展匹配至当前相同文本的开始偏移值
             int n_SearchLastEnd = textrange_SearchDocLast.offset_end;
             int n_DBLastEnd = textrange_DBDocLast.offset_end;
-            while(n_SearchLastEnd <= textrange_SearchDoc.offset_begin && n_DBLastEnd <= textrange_DBDoc.offset_begin && doc->GetstrContents()[n_SearchLastEnd] == docDB->GetstrContents()[n_DBLastEnd])
+            while(n_SearchLastEnd <= textrange_SearchDoc.offset_begin && n_DBLastEnd <= docDB->GetstrContents().size() && doc->GetstrContents()[n_SearchLastEnd] == docDB->GetstrContents()[n_DBLastEnd])
             {
                 n_SearchLastEnd++;
                 n_DBLastEnd++;
@@ -134,7 +145,7 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
             //当前一个向前扩展匹配至上一个相同文本的最后偏移值
             int n_SearchBegin = textrange_SearchDoc.offset_begin;
             int n_DBBegin = textrange_DBDoc.offset_begin;
-            while(n_SearchBegin >= textrange_SearchDocLast.offset_end && n_DBBegin>=textrange_DBDocLast.offset_end && doc->GetstrContents()[n_SearchBegin] == docDB->GetstrContents()[n_DBBegin])
+            while(n_SearchBegin >= textrange_SearchDocLast.offset_end && n_DBBegin >= 0 && doc->GetstrContents()[n_SearchBegin] == docDB->GetstrContents()[n_DBBegin])
             {
                 n_SearchBegin--;
                 n_DBBegin--;
@@ -154,17 +165,28 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
                 n_SameContentsBytes -= textrange_SearchDocLast.offset_end - textrange_SearchDocLast.offset_begin;
                 vec_ExtendedSearchDocSimilarTextRange.pop_back();
                 vec_ExtendedDBDocSimilarTextRange.pop_back();
-                //计算扩展匹配事相同的字符个数，修改上一个文本范围
-                int n_NumOfWcharLast = (n_SearchLastEnd - textrange_SearchDocLast.offset_end + 1)/n_wcharBit;
-                textrange_SearchDocLast.offset_end += n_NumOfWcharLast*n_wcharBit;
-                textrange_DBDocLast.offset_end += n_NumOfWcharLast*n_wcharBit;
+                //判断是否是一个字符的边界
+                while(doc->GetstrContents()[n_SearchLastEnd] > 127 && docDB->GetstrContents()[n_DBLastEnd] > 127)//既不是英文数字，也不是中文的第一个字节
+                {
+                    n_SearchLastEnd--;
+                    n_DBLastEnd--;
+                }
+                textrange_SearchDocLast.offset_end = n_SearchLastEnd;
+                textrange_DBDocLast.offset_end = n_DBLastEnd;
                 n_SameContentsBytes += textrange_SearchDocLast.offset_end - textrange_SearchDocLast.offset_begin;
                 vec_ExtendedSearchDocSimilarTextRange.push_back(textrange_SearchDocLast);
                 vec_ExtendedDBDocSimilarTextRange.push_back(textrange_DBDocLast);
-                //计算扩展匹配时相同的字符个数，修改当前文本范围
-                int n_NumOfWchar = (textrange_SearchDoc.offset_begin - n_SearchBegin - 1)/n_wcharBit;
-                textrange_SearchDoc.offset_begin -= n_NumOfWchar*n_wcharBit;
-                textrange_DBDoc.offset_begin -= n_NumOfWchar*n_wcharBit;
+                //回到相等的位置
+                n_SearchBegin++;
+                n_DBBegin++;
+                //判断是否是一个字符的边界
+                while(doc->GetstrContents()[n_SearchBegin] > 127 && docDB->GetstrContents()[n_DBBegin] > 127)//既不是英文数字，也不是中文的第一个字节
+                {
+                    n_SearchBegin++;
+                    n_DBBegin++;
+                }
+                textrange_SearchDoc.offset_begin = n_SearchBegin;
+                textrange_DBDoc.offset_begin = n_DBBegin;
             }
         }
         n_SameContentsBytes += textrange_SearchDoc.offset_end - textrange_SearchDoc.offset_begin;
@@ -185,10 +207,14 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
         n_SearchLastEnd++;
         n_DBLastEnd++;
     }
-    //计算相同的字符个数
-    int n_NumOfWcharLast = (n_SearchLastEnd - textrange_SearchDocLast.offset_end + 1)/n_wcharBit;
-    textrange_SearchDocLast.offset_end += n_NumOfWcharLast*n_wcharBit;
-    textrange_DBDocLast.offset_end += n_NumOfWcharLast*n_wcharBit;
+    //判断是否是一个字符的边界
+    while(doc->GetstrContents()[n_SearchLastEnd] > 127 && docDB->GetstrContents()[n_DBLastEnd] > 127)//既不是英文数字，也不是中文的第一个字节
+    {
+        n_SearchLastEnd--;
+        n_DBLastEnd--;
+    }
+    textrange_SearchDocLast.offset_end = n_SearchLastEnd;
+    textrange_DBDocLast.offset_end = n_DBLastEnd;
     n_SameContentsBytes += textrange_SearchDocLast.offset_end - textrange_SearchDocLast.offset_begin;
     vec_ExtendedSearchDocSimilarTextRange.push_back(textrange_SearchDocLast);
     vec_ExtendedDBDocSimilarTextRange.push_back(textrange_DBDocLast);

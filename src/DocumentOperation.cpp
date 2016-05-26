@@ -142,7 +142,7 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
 
 int DocumentOperation::SearchLeak(const std::string& str_DocPath)
 {
-    Document* doc = new Document(str_DocPath,true);
+    Document* doc = new Document(str_DocPath,true,true);
     DocumentDao* docDao = new DocumentDao();
     //与数据库中的文件SimHash比较,如果不相同,再通过文档指纹查询泄露信息
     std::string str_SimilarDoc = docDao->QuerySIMSimilarity(doc);

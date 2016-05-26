@@ -103,7 +103,7 @@ void SplitUtil::SplitTermAndCalcTF(Sentence& sen,const std::string& str,std::map
         SplitedHits sh_hits =
         {
             str_HitsWord,
-            sen.textRange.offset_begin + n_offset,
+            sen.textRange.offset_begin + n_offset,//偏移值为最后一个字符的下一个字符所在的位置
             n_length,
             hashValue
         };
