@@ -15,16 +15,9 @@ int main()
     //读取语料库中的词频信息
     ReadCorpus::ReadCorpusTF("./Corpus/Corpus.csv");
     //输出语料库信息
-    /*//对map按值排序
-    std::vector<TFPair> vec_TFPair = SortUtil::SortTFMap(ReadCorpus::map_CorpusTF);
-    //遍历map
-    for(std::vector<TFPair>::iterator it = vec_TFPair.begin(); it != vec_TFPair.end(); it++)
-    {
-        std::wcout<<StringUtil::ConvertCharArraytoWString(it->first) <<" : "<<it->second<<std::endl;
-    }*/
     //将一个目录中的文件加入到数据库中
     std::string str_InputDir = "./in/";
-    //DocumentOperation::AddDirectoryDocuments(str_InputDir);
+    DocumentOperation::AddDirectoryDocuments(str_InputDir);
     //DocumentOperation::AddDocument("./in/Winnowing.txt");
     //DocumentOperation::AddDocument("./in/utf_12.txt");
     //查询数据泄露

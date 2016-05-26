@@ -14,6 +14,7 @@ Document::Document(const std::string& str_DocPath,bool b_SplitToSentence,bool b_
     this->m_nWordCount = 0;
     if(b_SplitToSentence)
     {
+        std::cout<<"Reading document "<<this->m_strDocName<<std::endl;
         //读取文档内容
         int n_ReadStats = ReadDocumentAndSplitToSentence();
         if(n_ReadStats == ERROR_OPENFILE)
@@ -128,6 +129,7 @@ void Document::SplitSentenceToWords()
 */
 void Document::CalcDocSimHash()
 {
+    std::cout<<"Calculate simhash of document "<<this->m_strDocName<<std::endl;
     for(int i=0; i<this->m_vecParagraph.size(); i++)
     {
         Paragraph& para = this->m_vecParagraph[i];
@@ -189,6 +191,7 @@ void Document::PickStopTerm()
 */
 void Document::PickFingerPrints()
 {
+    std::cout<<"Picking fingerprints of document "<<this->m_strDocName<<std::endl;
     TFNormalization();
     PickStopTerm();//挑选停用词
     for(std::vector<KGramHash>::iterator it = this->m_KGramFingerPrints.begin(); it != this->m_KGramFingerPrints.end(); it++)

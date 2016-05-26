@@ -50,6 +50,7 @@ int DocumentDao::DeleteAll()
 //从数据库中查询simhash值相似的文件名称，没有则返回""
 std::string DocumentDao::QuerySIMSimilarity(const Document* doc)
 {
+    std::cout<<"Query similar simhash of document "<<doc->GetstrDocName()<<std::endl;
     mongo::BSONObj bo_columns = BSON("docsimhash"<<1<<"filelength"<<1<<"filepath"<<1);
     mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,mongo::Query(),0,0,&bo_columns);
     while (cursor->more())

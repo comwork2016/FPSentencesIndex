@@ -10,6 +10,7 @@ ReadCorpus::ReadCorpus()
 */
 void ReadCorpus::ReadCorpusTF(const std::string& str_CorpusPath)
 {
+    std::cout<<"Reading corpus!"<<std::endl;
     std::ifstream fin;
     fin.open(str_CorpusPath.c_str(),std::ios::in);
     if(!fin.is_open())
@@ -32,6 +33,7 @@ void ReadCorpus::ReadCorpusTF(const std::string& str_CorpusPath)
         map_CorpusTF[term] = frequency;
     }
     fin.close();
+    std::cout<<"Reading corpus done!"<<std::endl;
 }
 
 ReadCorpus::~ReadCorpus()

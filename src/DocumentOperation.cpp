@@ -20,7 +20,7 @@ int DocumentOperation::AddDocument(const std::string& str_DocPath)
         //挑选指纹信息并存入
         doc->PickFingerPrints();
         docDao->InsertDocument(doc);
-        std::cout<<doc->GetstrDocName() <<" inserted"<<std::endl;
+        std::cout<<"Document "<<doc->GetstrDocName() <<" inserted"<<std::endl;
     }
     else
     {
@@ -111,8 +111,6 @@ int DocumentOperation::AddDirectoryDocuments(const std::string& str_InputDir)
                 splitUtil->SplitTermAndCalcTF(sen,str_sentence,map_TF, n_WordCount);
                 doc->SetMapTF(map_TF);
                 doc->SetnWordCount(doc->GetnWordCount() + n_WordCount);
-                //std::cout<<doc->GetstrDocName()<<","<<doc->GetnWordCount()<<","<<n_WordCount<<std::endl;
-                //std::cin.get();
                 //提取文章标题中的词语
                 if(i==0 && j==0) //如果是第一段的第一句话，则为文章的标题
                 {
