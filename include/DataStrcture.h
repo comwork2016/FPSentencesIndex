@@ -5,6 +5,13 @@
 #include <vector>
 #include "Constants.h"
 
+//定义结构体，文档某一段之间的内容
+struct TextRange
+{
+    int offset_begin;//起始偏移值
+    int offset_end;//结束偏移值
+};
+
 //定义结构体，用来存储分词之后的片段信息
 struct SplitedHits
 {
@@ -37,6 +44,14 @@ struct Paragraph
     TextRange textRange; //段落范围
     SIMHASH_TYPE hashValue;//段落simhash值
     std::vector<Sentence> vec_Sentences; //段落包含的分词信息
+};
+
+//重复句子的列表
+struct FingerPrintsMapping
+{
+    TextRange textrange_SearchDoc;
+    std::vector<std::string> vec_DBDocPath;//数据库的文档中相同指纹向量
+    std::vector<TextRange> vec_DBDocFingerprintTextRange;//数据库的文档中相同指纹向量
 };
 
 //文档之间的相似度和相同文本

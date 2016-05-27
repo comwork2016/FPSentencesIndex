@@ -237,13 +237,14 @@ void DocumentDao::ExtendMatch(const Document* doc, const Document *docDB,std::ve
 //从数据库中查询指纹相似的文档
 std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocument(Document* doc)
 {
-    std::vector<FingerPrintsSimilarDocument> vec_SimilarDocument;
-
+    std::vector<FingerPrintsMapping> vec_FingerprintsMapping;
     //遍历待比对的文档指纹
     std::vector<KGramHash> docFingerPrints = doc->GetKGramFingerPrints();
     for(std::vector<KGramHash>::iterator it = docFingerPrints.begin(); it!= docFingerPrints.end(); it++)
     {
         KGramHash kgramHash_SearchDoc = *it;
+        FingerPrintsMapping fpMapping;
+        fpMapping.textrange_SearchDoc = kgramHash_SearchDoc.textRange;
         mongo::BSONObj bo_columns = BSON("_id"<<0<<"filepath"<<1<<"fingerprints"<<BSON("$elemMatch"<<BSON("hash"<<static_cast<long long>(kgramHash_SearchDoc.hashValue))));
         mongo::Query query = QUERY("fingerprints.hash"<<static_cast<long long>(kgramHash_SearchDoc.hashValue));
         mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,query,0,0,&bo_columns);
@@ -252,67 +253,49 @@ std::vector<FingerPrintsSimilarDocument> DocumentDao::GetFingerPrintsSimilarDocu
             mongo::BSONObj p = cursor->next();
             std::string str_DocPathInDB = p.getStringField("filepath");
             mongo::BSONObj bson_fingerPos = p.getField("fingerprints").Array()[0].Obj().getObjectField("pos");
-            int offset_begin = bson_fingerPos.getIntField("begin");
-            int offset_end = bson_fingerPos.getIntField("end");
-            std::cout<<offset_begin<<"\t"<<offset_end<<std::endl;
+            TextRange textrange_DB;
+            textrange_DB.offset_begin = bson_fingerPos.getIntField("begin");
+            textrange_DB.offset_end = bson_fingerPos.getIntField("end");
+            fpMapping.vec_DBDocPath.push_back(str_DocPathInDB);
+            fpMapping.vec_DBDocFingerprintTextRange.push_back(textrange_DB);
         }
-        /*
-
-            // 查询数据库
-            mongo::BSONObj bo_columns = BSON("fingerprints"<<1<<"filepath"<<1);
-            mongo::auto_ptr<mongo::DBClientCursor> cursor = this->m_Conn.query(this->m_DBName,mongo::Query(),0,0,&bo_columns);
-            while (cursor->more())
+        vec_FingerprintsMapping.push_back(fpMapping);
+    }
+    //对不同文件中的相同指纹进行合并
+    std::map<std::string,FingerPrintsSimilarDocument> map_DBDocFPSimilarDoc;//各个文件中相同的指纹
+    for(int i=0; i<vec_FingerprintsMapping.size(); i++)
+    {
+        FingerPrintsMapping fpMapping = vec_FingerprintsMapping[i];
+        for(int j=0; j<fpMapping.vec_DBDocFingerprintTextRange.size(); j++)
+        {
+            std::string str_DBDocPath = fpMapping.vec_DBDocPath[j];
+            TextRange textrange_DBDocTextRange = fpMapping.vec_DBDocFingerprintTextRange[j];
+            FingerPrintsSimilarDocument similarDoc;
+            if(map_DBDocFPSimilarDoc.count(str_DBDocPath)==0) //还没处理过该相同指纹的文件
             {
-                mongo::BSONObj p = cursor->next();
-                std::string str_DocPathInDB = p.getStringField("filepath");
-                mongo::BSONObj bson_FingerPrints = p.getObjectField("fingerprints"); //数据库中一个文档的指纹信息
-                std::vector<TextRange> vec_SearchDocSimilarTextRange;//待比对的文档中相同指纹范围
-                std::vector<TextRange> vec_DBDocSimilarTextRange;//数据库的文档中相同指纹范围
-                //遍历待比对的文档指纹
-                std::vector<KGramHash> docFingerPrints = doc->GetKGramFingerPrints();
-                for(std::vector<KGramHash>::iterator it = docFingerPrints.begin(); it!= docFingerPrints.end(); it++)
-                {
-                    KGramHash kgramHash_SearchDoc = *it;
-                    std::stringstream ss;
-                    ss << kgramHash_SearchDoc.hashValue;
-                    mongo::BSONObj bson_fingerPos = bson_FingerPrints.getObjectField(ss.str().c_str());
-                    //数据库文档中存在该指纹
-                    if(!bson_fingerPos.isEmpty())
-                    {
-                        TextRange textrange_SearchDoc;
-                        TextRange textrange_DBDoc;
-                        textrange_SearchDoc.offset_begin = kgramHash_SearchDoc.textRange.offset_begin;
-                        textrange_SearchDoc.offset_end = kgramHash_SearchDoc.textRange.offset_end;
-                        textrange_DBDoc.offset_begin = bson_fingerPos.getIntField("begin");
-                        textrange_DBDoc.offset_end = bson_fingerPos.getIntField("end");
-                        vec_SearchDocSimilarTextRange.push_back(textrange_SearchDoc);
-                        vec_DBDocSimilarTextRange.push_back(textrange_DBDoc);
-                    }
-                }
-                //如果有匹配的指纹，则进行扩展匹配
-                int n_SameContentsBytes = 0;
-                if(!vec_SearchDocSimilarTextRange.empty())
-                {
-                    Document* docDB = new Document(str_DocPathInDB);
-                    ExtendMatch(doc,docDB,vec_SearchDocSimilarTextRange,vec_DBDocSimilarTextRange,n_SameContentsBytes);
-                    delete docDB;
-                }
-                //遍历完成之后计算相似度
-                if(n_SameContentsBytes!=0)
-                {
-                    //保存相似文档信息
-        //            int n_MinDocSize = doc->GetstrContents().size() < docDB->GetstrContents().size()? doc->GetstrContents().size() : docDB->GetstrContents().size();
-        //            float f_similarity = float(n_SameContentsBytes)/n_MinDocSize;
-                    float f_similarity = float(n_SameContentsBytes)/doc->GetstrContents().size();
-                    FingerPrintsSimilarDocument similarDoc;
-                    similarDoc.str_SearchDoc = doc->GetstrDocPath();
-                    similarDoc.str_DBDoc = str_DocPathInDB;
-                    similarDoc.f_similarity = f_similarity;
-                    similarDoc.vec_SearchDocSimilarTextRange = vec_SearchDocSimilarTextRange;
-                    similarDoc.vec_DBDocSimilarTextRange = vec_DBDocSimilarTextRange;
-                    //将相似文档信息添加到向量中
-                    vec_SimilarDocument.push_back(similarDoc);
-                }*/
+                //初始化相似文档基本信息
+                similarDoc.str_SearchDoc = doc->GetstrDocPath();
+                similarDoc.str_DBDoc = str_DBDocPath;
+                map_DBDocFPSimilarDoc[str_DBDocPath] = similarDoc;
+            }
+            similarDoc = map_DBDocFPSimilarDoc[str_DBDocPath];
+            similarDoc.vec_SearchDocSimilarTextRange.push_back(fpMapping.textrange_SearchDoc);
+            similarDoc.vec_DBDocSimilarTextRange.push_back(textrange_DBDocTextRange);
+            map_DBDocFPSimilarDoc[str_DBDocPath] = similarDoc;
+        }
+    }
+    //将map中所有的相似文档信息存入向量中
+    std::vector<FingerPrintsSimilarDocument> vec_SimilarDocument;
+    for(std::map<std::string,FingerPrintsSimilarDocument>::iterator it = map_DBDocFPSimilarDoc.begin(); it != map_DBDocFPSimilarDoc.end(); it++)
+    {
+        FingerPrintsSimilarDocument similarDoc = it->second;
+        //对相同指纹扩展匹配
+        int n_SameContentsBytes = 0;
+        Document* docDB = new Document(similarDoc.str_DBDoc);
+        ExtendMatch(doc,docDB,similarDoc.vec_SearchDocSimilarTextRange,similarDoc.vec_DBDocSimilarTextRange,n_SameContentsBytes);
+        delete docDB;
+        similarDoc.f_similarity = float(n_SameContentsBytes)/doc->GetstrContents().size();//计算相似度
+        vec_SimilarDocument.push_back(similarDoc);
     }
     return vec_SimilarDocument;
 }
