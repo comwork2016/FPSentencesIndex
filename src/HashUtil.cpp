@@ -28,6 +28,7 @@ SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
     else
     {
         std::wstring wstr = StringUtil::ConvertCharArraytoWString(str);
+        //不管数据是否溢出，最终只取结果的一部分作为字符串的hash值
         int seed = 131313; // 31 131 1313 13131 131313 etc..
         for(int i=0; i<wstr.length(); i++)
         {
@@ -37,6 +38,11 @@ SIMHASH_TYPE HashUtil::CalcStringHash(const std::string& str)
         }
     }
     l_Hash = (l_Hash & 0x7FFFFFFFFFFFFFFF) % MODNUM;
+    if(l_Hash * BASE*2<0)
+    {
+        std::cout<<"less than 0"<<std::endl;
+        std::cin.get();
+    }
     return l_Hash;
 }
 
